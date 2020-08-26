@@ -67,6 +67,39 @@
             "metadata": {
                 "description": "A /27 under the VNet Address Space for Azure Bastion"
             }
+        },
+        "serviceTagsLocation": {
+            "type": "string",
+            "defaultValue": "EastUS2",
+            "allowedValues": [
+                "CentralUS",
+                "WestUS",
+                "EastUS2",
+                "WestUS2",
+                "FranceCentral",
+                "NorthEurope",
+                "UKSouth",
+                "WestEurope",
+                "JapanEast",
+                "SoutheastAsia"
+            ],
+            "metadata": {
+                "description": "the location that will be used from the Azure Firewall rules to regionally allow establishing connections against Azure specific services."
+            }
+        },
+        "acrServers": {
+            "type": "array",
+            "defaultValue": ["*.azurecr.io"],
+            "metadata": {
+                "description": "the Fabrikam Shipping Drone Delivery 00's Azure Container Registries server names for dev-qa-staging and production."
+            }
+        },
+        "deliveryRedisHostNames": {
+            "type": "array",
+            "defaultValue": ["*.redis.cache.windows.net"],
+            "metadata": {
+                "description": "the Azure Redis Caches names for the Fabrikam Shipping Drone Delivery 00's delivery app in dev-qa-staging and production. It will be used to create an Azure Firewall FQDN Application Rule."
+            }
         }
     },
     "variables": {
@@ -191,7 +224,7 @@
                             "priority": 100,
                             "rules": [
                                 {
-                                    "name": "DNS",
+                                    "name": "dns",
                                     "sourceAddresses": [
                                         "*"
                                     ],
@@ -216,22 +249,6 @@
                                     ],
                                     "destinationPorts": [
                                         "123"
-                                    ],
-                                    "destinationAddresses": [
-                                        "*"
-                                    ]
-                                },
-                                {
-                                    "name": "HTTP-and-HTTPS",
-                                    "sourceAddresses": [
-                                        "*"
-                                    ],
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "destinationPorts": [
-                                        "80",
-                                        "443"
                                     ],
                                     "destinationAddresses": [
                                         "*"
@@ -262,7 +279,7 @@
                                         "9000"
                                     ],
                                     "destinationAddresses": [
-                                        "*"
+                                        "AzureCloud"
                                     ]
                                 },
                                 {
@@ -278,7 +295,125 @@
                                         "1194"
                                     ],
                                     "destinationAddresses": [
-                                        "*"
+                                        "AzureCloud"
+                                    ]
+                                },
+                                {
+                                    "name": "managed-k8s-api-tcp-443",
+                                    "description": "in-cluster apps could contact the Kubernetes Api Server using its endpoing IP address without providing the SNI extension, something which is not allowed by Azure Firewall. This rule takes care of it by allowing to establish connections against well-known Azure Public Ip addresses over the port 443. For instance this will be the case of Azure AD Pod identity if it does not reside within the kube-system namespace or Azure Application Gateway Ingress Controller",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "AzureCloud"
+                                    ],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "443"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AKS-Fabrikam-Shipping-DroneDelivery-00",
+                        "properties": {
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "priority": 300,
+                            "rules": [
+                                {
+                                    "name": "servicebus",
+                                    "description": "Azure Service Bus access for ingestion and workflow apps",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[concat('ServiceBus.',parameters('serviceTagsLocation'))]"
+                                    ],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "5671"
+                                    ]
+                                },
+                                {
+                                    "name": "azure-cosmosdb",
+                                    "description": "Azure Cosmos Db access for delivery and drone scheduler apps",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[concat('AzureCosmosDB.',parameters('serviceTagsLocation'))]"
+                                    ],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "443"
+                                    ]
+                                },
+                                {
+                                    "name": "azure-mongodb",
+                                    "description": "Azure Mongo Db access for package app",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[concat('AzureCosmosDB.',parameters('serviceTagsLocation'))]"
+                                    ],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "10255"
+                                    ]
+                                },
+                                {
+                                    "name": "azure-keyvault",
+                                    "description": "Azure Key Vault access for delivery, workflow and dronescheduler apps",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[concat('AzureKeyVault.',parameters('serviceTagsLocation'))]"
+                                    ],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "443"
+                                    ]
+                                },
+                                {
+                                    "name": "azure-monitor",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "AzureMonitor"
+                                    ],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "443"
                                     ]
                                 }
                             ]
@@ -477,6 +612,65 @@
                                     "targetFqdns": [
                                         "github.com"
                                     ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AKS-Fabrikam-Shipping-DroneDelivery-00",
+                        "properties": {
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "priority": 400,
+                            "rules": [
+                                {
+                                    "name": "accompanying-container-registries",
+                                    "description": "helm, agic, aad pod idenity, and others",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "targetFqdns": [
+                                        "gcr.io",
+                                        "storage.googleapis.com",
+                                        "aksrepos.azurecr.io",
+                                        "*.docker.io",
+                                        "*.docker.com"
+                                    ]
+                                },
+                                {
+                                    "name": "fabrikam-shipping-dronedelivery-00-container-registries",
+                                    "description": "images for delivery, package, workflow, ingestion and drone scheduler apps",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "targetFqdns": "[parameters('acrServers')]"
+                                },
+                                {
+                                    "name": "azure-cache-redis",
+                                    "description": "Azure Redis Cache for delivery app",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "https",
+                                            "port": "6380"
+                                        }
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
+                                    ],
+                                    "targetFqdns": "[parameters('deliveryRedisHostNames')]"
                                 }
                             ]
                         }

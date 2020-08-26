@@ -33,7 +33,7 @@
         }
     },
     "variables": {
-        "orgAppId": "BU0001A0008",
+        "orgAppId": "ShippingDroneDelivery",
         "clusterVNetName": "[concat('vnet-hub-spoke-', variables('orgAppId'), '-00')]",
 
         "routeTableName": "[concat('route-', variables('clusterVNetName'), '-clusternodes-to-hub')]",
