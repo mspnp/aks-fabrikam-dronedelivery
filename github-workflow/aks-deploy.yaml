@@ -52,6 +52,17 @@ env:
   K8S_RBAC_AAD_PROFILE_TENANTID: '<tenant-id-with-user-admin-permissions>'          # The tenant to integrate AKS-managed Azure AD
   K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID: '<azure-ad-aks-admin-group-object-id>' # The Azure AD group object ID that has admin access to the AKS cluster
   CLUSTER_AUTHORIZED_IP_RANGES: '[]'                                                # By default, this deployment will allow unrestricted access to your cluster's API Server. You should limit access to the API Server to a set of well-known IP addresses (i.,e. your hub firewall IP, bastion subnet, build agents, or any other networks you'll administer the cluster from), and can do so by adding a CLUSTER_AUTHORIZED_IP_RANGES="['managementRange1', 'managementRange2', 'AzureFirewallIP/32']"" parameter.
+  DELIVERY_ID_NAME: <delivery-id-name>                                              # The name of the delivery managed identity
+  DELIVERY_ID_PRINCIPAL_ID: <delivery-principal-id>                                 # The principal id for the delivery managed identity
+  DRONESCHEDULER_ID_NAME: <dronescheduler-id-name>                                  # The name of the drone scheduler managed identity
+  DRONESCHEDULER_ID_PRINCIPAL_ID: <dronescheduler-principal-id>                     # The principal id for the drone scheduler managed identity
+  WORKFLOW_ID_NAME: <workflow-id-name>                                              # The name of the workflow managed identity
+  WORKFLOW_ID_PRINCIPAL_ID: <workflow-principal-id>                                 # The principal id for the workflow managed identity
+  INGRESS_CONTROLLER_ID_NAME: <ingress-controller-id-name>                          # The name of the ingress controller managed identity
+  INGRESS_CONTROLLER_ID_PRINCIPAL_ID: <ingress-controller-principalid>              # The principal id for the ingress controller controller managed identity
+  ACR_RESOURCE_GROUP: <acr-resource-group-name>                                     # The resource group name of the Azure Continer Registry
+  ACR_LOCATION: <acr-resource-group-location>                                       # The resource group location of the Azure Continer Registry
+
 jobs:
   deploy:
     name: Deploy AKS cluster and Flux
@@ -85,7 +96,17 @@ jobs:
               k8sRbacAadProfileAdminGroupObjectID=${{ env.K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID }} \
               clusterAuthorizedIPRanges=${{ env.CLUSTER_AUTHORIZED_IP_RANGES}} \
               appGatewayListenerCertificate=${{ secrets.APP_GATEWAY_LISTENER_CERTIFICATE_BASE64 }} \
-              aksIngressControllerCertificate=${{ secrets.AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 }}
+              aksIngressControllerCertificate=${{ secrets.AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 }} \
+              deliveryIdName=${{DELIVERY_ID_NAME}} \
+              deliveryPrincipalId=${{DELIVERY_ID_PRINCIPAL_ID}} \
+              droneSchedulerIdName=${{DRONESCHEDULER_ID_NAME}} \
+              droneSchedulerPrincipalId=${{DRONESCHEDULER_ID_PRINCIPAL_ID}} \
+              workflowIdName=${{WORKFLOW_ID_NAME}} \
+              workflowPrincipalId=${{WORKFLOW_ID_PRINCIPAL_ID}} \
+              ingressControllerIdName=${{INGRESS_CONTROLLER_ID_NAME}} \
+              ingressControllerPrincipalId=${{INGRESS_CONTROLLER_ID_PRINCIPAL_ID}} \
+              acrResourceGroupName=${{ACR_RESOURCE_GROUP}} \
+              acrResourceGroupLocation=${{ACR_LOCATION}}
 
           echo "::set-output name=name::$(az deployment group show --resource-group ${{ env.RESOURCE_GROUP }} -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)"
         azcliversion: 2.6.0
