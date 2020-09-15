@@ -1,14 +1,14 @@
 # Configure AKS Ingress Controller with Azure Key Vault integration
 
-Previously you have configured [workload prerequisites](./07-workload-prerequisites.md). These steps configure Traefik, the AKS ingress solution used in this reference implementation, so that it can securely expose the web app to your Application Gateway.
+Previously you have configured [workload prerequisites](./07-workload-prerequisites.md). These steps configure Traefik and AGIC, as the AKS ingress solutions used in this reference implementation, so that it can securely expose the web app to your Application Gateway.
 
 ## Steps
 
 1. Get the AKS Ingress Controller Managed Identity details
 
    ```bash
-   export TRAEFIK_USER_ASSIGNED_IDENTITY_RESOURCE_ID=$(az deployment group show --resource-group rg-bu0001a0008 -n cluster-stamp --query properties.outputs.aksIngressControllerUserManageIdentityResourceId.value -o tsv)
-   export TRAEFIK_USER_ASSIGNED_IDENTITY_CLIENT_ID=$(az deployment group show --resource-group rg-bu0001a0008 -n cluster-stamp --query properties.outputs.aksIngressControllerUserManageIdentityClientId.value -o tsv)
+   export TRAEFIK_USER_ASSIGNED_IDENTITY_RESOURCE_ID=$(az deployment group show --resource-group rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.aksIngressControllerUserManageIdentityResourceId.value -o tsv)
+   export TRAEFIK_USER_ASSIGNED_IDENTITY_CLIENT_ID=$(az deployment group show --resource-group rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.aksIngressControllerUserManageIdentityClientId.value -o tsv)
    ```
 
 1. Ensure Flux has created the following namespace
@@ -56,7 +56,7 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
    apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
    kind: SecretProviderClass
    metadata:
-     name: aks-ingress-contoso-com-tls-secret-csi-akv
+     name: aks-internal-ingress-controller-tls-secret-csi-akv
      namespace: a0008
    spec:
      provider: azure
@@ -66,11 +66,11 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
        objects:  |
          array:
            - |
-             objectName: traefik-ingress-internal-aks-ingress-contoso-com-tls
+             objectName: aks-internal-ingress-controller-tls
              objectAlias: tls.crt
              objectType: cert
            - |
-             objectName: traefik-ingress-internal-aks-ingress-contoso-com-tls
+             objectName: aks-internal-ingress-controller-tls
              objectAlias: tls.key
              objectType: secret
        tenantId: "${TENANT_ID}"
@@ -83,7 +83,7 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
 
    ```bash
    # Get your ACR cluster name
-   export ACR_NAME=$(az deployment group show --resource-group rg-bu0001a0008 -n cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
+   export ACR_NAME=$(az deployment group show --resource-group rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.containerRegistryName.value -o tsv)
 
    # Import ingress controller image hosted in public container registries
    az acr import --source docker.io/library/traefik:2.2.1 -n $ACR_NAME
@@ -98,7 +98,7 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
    :warning: Deploying the traefik `traefik.yaml` file unmodified from this repo will be deploying your workload to take dependencies on a public container registry. This is generally okay for learning/testing, but not suitable for production. Before going to production, ensure _all_ image references are from _your_ container registry or another that you feel confident relying on.
 
    ```bash
-   kubectl apply -f https://raw.githubusercontent.com/mspnp/aks-secure-baseline/main/workload/traefik.yaml
+   kubectl apply -f https://raw.githubusercontent.com/mspnp/aks-fabrikam-dronedelivery/main/workload/traefik.yaml
    ```
 
 1. Wait for Traefik to be ready
@@ -107,6 +107,68 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
 
    ```bash
    kubectl wait --namespace a0008 --for=condition=ready pod --selector=app.kubernetes.io/name=traefik-ingress-ilb --timeout=90s
+   ```
+
+1. Obtain all the identity info to install Azure App Gateway Ingress Controller
+
+   > :book: the app team wants to use Azure AD Pod Identity to authenticate its
+   > ingress controller pod so they will need to obtain indentity information such us the
+   > user managed identity resource id and client id for the ingress controller created as part of the cluster pre requisites.
+   > This way when installing Azure Application Gateway Ingress Controller they can provide such information to create the Kubernetes Azure Identity objects.
+
+   ```bash
+   INGRESS_CONTROLLER_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.appGatewayControllerPrincipalResourceId.value -o tsv)
+   INGRESS_CONTROLLER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $INGRESS_CONTROLLER_ID_NAME --query clientId -o tsv)
+   ```
+1. Get the Name of Application Gateway
+
+   > :book: The app team needs to wire up the in-cluster AGIC with Application Gateway and that requires the Azure Application Gateway name.
+
+   ```bash
+   APPGW_NAME=$(az deployment group show --resource-group rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.agwName.value -o tsv)
+   ```
+
+1. Install the Azure App Gateway Ingress Controller
+
+   > :book: The Fabrikam Drone Delivery app's team has made the decision of having a
+   > separated ingress controller, since the team wants to simplify the
+   > ingestion of traffic into the AKS cluster, keep it safe, improve the performance, and save resources.
+   > The selected solution in this case was the Azure App Gateway
+   > Ingress Controller. This eliminates the necessity of an extra load
+   > balancer since pods will establish direct connections against their Azure App Gateway service
+   > reducing the number of hops which results in better performance.
+   > The traffic is now being handle exclusively by Azure
+   > Application Gateway that has built-in capabilities for auto-scaling, and the Fabrikam Drone Delivery workload pods without
+   > the necessity of scaling out any other component in the middle as it will
+   > be the case compared against any other popular ingress controller solutions that ends up
+   > consuming resources from the AKS cluster. Additionally, Azure App Gateway has
+   > End-to-end TLS integrated with a web aplication firewall in front.
+
+   ```bash
+   helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+   helm repo update
+
+   helm install ingress-azure-dev application-gateway-kubernetes-ingress/ingress-azure \
+     --namespace kube-system \
+     --set appgw.name=$APPGW_NAME \
+     --set appgw.resourceGroup=rg-shipping-dronedelivery \
+     --set appgw.subscriptionId=$(az account show --query id --output tsv) \
+     --set appgw.shared=false \
+     --set kubernetes.watchNamespace=backend-dev \
+     --set armAuth.type=aadPodIdentity \
+     --set armAuth.identityResourceID=$INGRESS_CONTROLLER_PRINCIPAL_RESOURCE_ID \
+     --set armAuth.identityClientID=$INGRESS_CONTROLLER_PRINCIPAL_CLIENT_ID \
+     --set rbac.enabled=true \
+     --set verbosityLevel=3 \
+     --set aksClusterConfiguration.apiServerAddress=$(az aks show -n $AKS_CLUSTER_NAME -g rg-shipping-dronedelivery --query fqdn -o tsv) \
+     --set appgw.usePrivateIP=false \
+     --version 1.2.1
+   ```
+
+1. Wait for AGIC to be ready
+
+   ```bash
+   kubectl wait --namespace kube-system --for=condition=ready pod --selector=release=ingress-azure-dev --timeout=90s
    ```
 
 ### Next step
