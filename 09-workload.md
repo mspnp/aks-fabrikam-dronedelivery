@@ -1,17 +1,19 @@
-# Deploy the Workload (ASP.NET Core Docker web app)
+ # Deploy Workload (ASP.NET Core Docker web app) and the Fabrikam Drone Delivery app
 
-The cluster now has an [Traefik configured with a TLS certificate](./08-secret-managment-and-ingress-controller.md). The last step in the process is to deploy the workload, which will demonstrate the system's functions.
+The cluster now has an [Traefik configured with a TLS certificate as well as a Azure Application Gateway Ingress Controller](./08-secret-managment-and-ingress-controller.md). The last step in the process is to deploy the workload, which will demonstrate the system's functions and install the Fabrikam Drone Delivery app.
 
 ## Steps
 
-> :book: The Contoso app team is about to conclude this journey, but they need an app to test their new infrastructure. For this task they've picked out the venerable [ASP.NET Core Docker sample web app](https://github.com/dotnet/dotnet-docker/tree/master/samples/aspnetapp).
+> :book: The Fabrikam Drone Delivery app team is about to conclude this journey, but they need an app to test their new infrastructure. For this task they've picked out the venerable [ASP.NET Core Docker sample web app](https://github.com/dotnet/dotnet-docker/tree/master/samples/aspnetapp).
+
+**Step 1 - prove the infrastructure is working before installing a new whole app in the AKS cluster**
 
 1. Deploy the ASP.NET Core Docker sample web app
 
    > The workload definition demonstrates the inclusion of a Pod Disruption Budget rule, ingress configuration, and pod (anti-)affinity rules for your reference.
 
    ```bash
-   kubectl apply -f https://raw.githubusercontent.com/mspnp/aks-secure-baseline/main/workload/aspnetapp.yaml
+   kubectl apply -f https://raw.githubusercontent.com/mspnp/aks-fabrikam-dronedelivery/main/workload/aspnetapp.yaml
    ```
 
 1. Wait until is ready to process requests running
@@ -33,7 +35,306 @@ The cluster now has an [Traefik configured with a TLS certificate](./08-secret-m
 1. Give a try and expect a `403` HTTP response
 
    ```bash
-   kubectl -n a0008 run -i --rm --tty curl --image=mcr.microsoft.com/powershell --limits=cpu=200m,memory=128M -- curl -kI https://bu0001a0008-00.aks-ingress.contoso.com -w '%{remote_ip}\n'
+   kubectl -n a0008 run -i --rm --tty curl --image=mcr.microsoft.com/powershell --limits=cpu=200m,memory=128M -- curl -kI https://bu0001a0008-00.aks-agic.fabrikam.com -w '%{remote_ip}\n'
+   ```
+
+**Step 2 - after the infrastructure is proved to be functioning, procceed with the Fabrikam Drone Delivery app**
+
+> :book: The Drone Delivery application is a sample application that consists of several microservices. Because it's a sample, the functionality is simulated, but the APIs and microservices interactions are intended to reflect real-world design patterns.
+>
+>  - Ingestion service. Receives client requests and buffers them.
+>  - Workflow service. Dispatches client requests and manages the delivery workflow.
+>  - Delivery service. Manages deliveries that are scheduled or in-transit.
+>  - Package service. Manages packages.
+>  - Drone service. Schedules drones and monitors drones in flight.
+>
+> The Fabrikam Drone Delivery app team is about to deploy all the microservices
+> into the AKS cluster. They all are going to be deployed in the same way,
+> it will require to build their Docker images, collect values like Azure service names or any
+> other kind of information, and deploy the app using Helm.
+
+![](./architecture.png)
+
+1. Get the Azure Container Registry server name
+
+   ```bash
+   ACR_NAME=$(az deployment group show --resource-group rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.acrName.value -o tsv)
+   ACR_SERVER=$(az acr show -n $ACR_NAME --query loginServer -o tsv)
+   ```
+
+1. Deploy the Delivery service app
+
+   Build the Delivery service
+
+   ```bash
+   docker build --pull --compress -t $ACR_SERVER/delivery:0.1.0 ./src/shipping/delivery/.
+   ```
+
+   Push the image to ACR
+
+   ```bash
+   az acr login --name $ACR_NAME
+   docker push $ACR_SERVER/delivery:0.1.0
+   ```
+
+   Extract Azure resource details for the delivery app
+
+   ```bash
+   DELIVERY_KEYVAULT_URI=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryKeyVaultUri.value -o tsv)
+   DELIVERY_COSMOSDB_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryCosmosDbName.value -o tsv)
+   DELIVERY_DATABASE_NAME="${DELIVERY_COSMOSDB_NAME}-db"
+   DELIVERY_COLLECTION_NAME="${DELIVERY_COSMOSDB_NAME}-col"
+   DELIVERY_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.deliveryPrincipalResourceId.value -o tsv)
+   DELIVERY_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DELIVERY_ID_NAME --query clientId -o tsv)
+   DELIVERY_INGRESS_TLS_SECRET_NAME=delivery-ingress-tls
+   ```
+
+   Deploy the Delivery service
+
+   ```bash
+   helm package ./charts/delivery/ -u
+   helm install delivery-v0.1.0-dev delivery-v0.1.0.tgz \
+        --set image.tag=0.1.0 \
+        --set image.repository=delivery \
+        --set dockerregistry=$ACR_SERVER \
+        --set ingress.hosts[0].name=$EXTERNAL_INGEST_FQDN \
+        --set ingress.hosts[0].serviceName=delivery \
+        --set ingress.hosts[0].tls=false \
+        --set ingress.tls.secrets[0].key="$(cat k8sic.key)" \
+        --set ingress.tls.secrets[0].certificate="$(cat k8sic.crt)" \
+        --set networkPolicy.egress.external.enabled=true \
+        --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
+        --set networkPolicy.ingress.externalSubnet.enabled=true \
+        --set networkPolicy.ingress.externalSubnet.subnetPrefix=$GATEWAY_SUBNET_PREFIX \
+        --set identity.clientid=$DELIVERY_PRINCIPAL_CLIENT_ID \
+        --set identity.resourceid=$DELIVERY_PRINCIPAL_RESOURCE_ID \
+        --set cosmosdb.id=$DELIVERY_DATABASE_NAME \
+        --set cosmosdb.collectionid=$DELIVERY_COLLECTION_NAME \
+        --set keyvault.uri=$DELIVERY_KEYVAULT_URI \
+        --set reason="Initial deployment" \
+        --set envs.dev=true \
+        --namespace backend-dev
+   ```
+
+   Verify the pod is created
+
+   ```bash
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=delivery-v0.1.0-dev --timeout=90s
+   ```
+1. Deploy the Ingestion service app
+
+   Build the Ingestion service
+
+   ```bash
+   docker build --pull --compress -t $ACR_SERVER/ingestion:0.1.0 ./src/shipping/ingestion/.
+   ```
+
+   Push the image to ACR
+
+   ```bash
+   az acr login --name $ACR_NAME
+   docker push $ACR_SERVER/ingestion:0.1.0
+   ```
+
+   Extract Azure resource details for the ingestion app
+
+   ```bash
+   export INGESTION_QUEUE_NAMESPACE=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.ingestionQueueNamespace.value -o tsv)
+   export INGESTION_QUEUE_NAME=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.ingestionQueueName.value -o tsv)
+   export INGESTION_ACCESS_KEY_NAME=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.ingestionServiceAccessKeyName.value -o tsv)
+   export INGESTION_ACCESS_KEY_VALUE=$(az servicebus namespace authorization-rule keys list --resource-group $RESOURCE_GROUP --namespace-name $INGESTION_QUEUE_NAMESPACE --name $INGESTION_ACCESS_KEY_NAME --query primaryKey -o tsv)
+   export INGRESS_TLS_SECRET_NAME=ingestion-ingress-tls
+   ```
+
+   Deploy the Ingestion service
+
+   ```bash
+   helm package $HELM_CHARTS/ingestion/ -u && \
+   helm install ingestion-v0.1.0-dev ingestion-v0.1.0.tgz \
+        --set image.tag=0.1.0 \
+        --set image.repository=ingestion \
+        --set dockerregistry=$ACR_SERVER \
+        --set ingress.hosts[0].name=$EXTERNAL_INGEST_FQDN \
+        --set ingress.hosts[0].serviceName=ingestion \
+        --set ingress.hosts[0].tls=true \
+        --set ingress.hosts[0].tlsSecretName=$INGRESS_TLS_SECRET_NAME \
+        --set ingress.tls.secrets[0].name=$INGRESS_TLS_SECRET_NAME \
+        --set ingress.tls.secrets[0].key="$(cat ingestion-ingress-tls.key)" \
+        --set ingress.tls.secrets[0].certificate="$(cat ingestion-ingress-tls.crt)" \
+        --set networkPolicy.egress.external.enabled=true \
+        --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
+        --set networkPolicy.ingress.externalSubnet.enabled=true \
+        --set networkPolicy.ingress.externalSubnet.subnetPrefix=$GATEWAY_SUBNET_PREFIX \
+        --set secrets.appinsights.ikey=${AI_IKEY} \
+        --set secrets.queue.keyname=IngestionServiceAccessKey \
+        --set secrets.queue.keyvalue=${INGESTION_ACCESS_KEY_VALUE} \
+        --set secrets.queue.name=${INGESTION_QUEUE_NAME} \
+        --set secrets.queue.namespace=${INGESTION_QUEUE_NAMESPACE} \
+        --set reason="Initial deployment" \
+        --set envs.dev=true \
+        --namespace backend-dev
+   ```
+
+   Verify the pod is created
+
+   ```bash
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=ingestion-v0.1.0-dev --timeout=90s
+   ```
+
+1. Deploy the Workflow service app
+
+   Build the Workflow service
+
+   ```bash
+   docker build --pull --compress -t $ACR_SERVER/workflow:0.1.0 ./src/shipping/workflow/.
+   ```
+
+   Push the image to ACR
+
+   ```bash
+   az acr login --name $ACR_NAME
+   docker push $ACR_SERVER/workflow:0.1.0
+   ```
+
+   Extract Azure resource details for the workflow app
+
+   ```bash
+   export WORKFLOW_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g $RESOURCE_GROUP -n $IDENTITIES_DEV_DEPLOYMENT_NAME --query properties.outputs.workflowPrincipalResourceId.value -o tsv) && \
+   export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g $RESOURCE_GROUP -n $WORKFLOW_ID_NAME --query clientId -o tsv)
+   ```
+
+   Deploy the Workflow service
+
+   ```bash
+   helm package $HELM_CHARTS/workflow/ -u && \
+   helm install workflow-v0.1.0-dev workflow-v0.1.0.tgz \
+        --set image.tag=0.1.0 \
+        --set image.repository=workflow \
+        --set dockerregistry=$ACR_SERVER \
+        --set identity.clientid=$WORKFLOW_PRINCIPAL_CLIENT_ID \
+        --set identity.resourceid=$WORKFLOW_PRINCIPAL_RESOURCE_ID \
+        --set networkPolicy.egress.external.enabled=true \
+        --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
+        --set keyvault.name=$WORKFLOW_KEYVAULT_NAME \
+        --set keyvault.resourcegroup=$RESOURCE_GROUP \
+        --set keyvault.subscriptionid=$SUBSCRIPTION_ID \
+        --set keyvault.tenantid=$TENANT_ID \
+        --set reason="Initial deployment" \
+        --set envs.dev=true \
+        --namespace backend-de
+   ```
+
+   Verify the pod is created
+
+   ```bash
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=workflow-v0.1.0-dev --timeout=90s
+   ```
+
+1. Deploy the DroneScheduler service app
+
+   Build the DroneScheduler service
+
+   ```bash
+   docker build --pull --compress -t $ACR_SERVER/dronescheduler:0.1.0 ./src/shipping/dronescheduler/.
+   ```
+
+   Push the image to ACR
+
+   ```bash
+   az acr login --name $ACR_NAME
+   docker push $ACR_SERVER/dronescheduler:0.1.0
+   ```
+
+   Extract Azure resource details for the dronescheduler app
+
+   ```bash
+   export DRONESCHEDULER_KEYVAULT_URI=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
+   export DRONESCHEDULER_COSMOSDB_NAME=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
+   export ENDPOINT_URL=$(az cosmosdb show -n $DRONESCHEDULER_COSMOSDB_NAME -g $RESOURCE_GROUP --query documentEndpoint -o tsv)
+   export AUTH_KEY=$(az cosmosdb list-keys -n $DRONESCHEDULER_COSMOSDB_NAME -g $RESOURCE_GROUP --query primaryMasterKey -o tsv)
+   export DATABASE_NAME="invoicing"
+   export COLLECTION_NAME="utilization"
+   export DRONESCHEDULER_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g $RESOURCE_GROUP -n $IDENTITIES_DEV_DEPLOYMENT_NAME --query properties.outputs.droneSchedulerPrincipalResourceId.value -o tsv) && \
+   export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g $RESOURCE_GROUP -n $DRONESCHEDULER_ID_NAME --query clientId -o tsv)
+   ```
+
+   Deploy the DroneScheduler service
+
+   ```bash
+   helm package $HELM_CHARTS/dronescheduler/ -u && \
+   helm install dronescheduler-v0.1.0-dev dronescheduler-v0.1.0.tgz \
+        --set image.tag=0.1.0 \
+        --set image.repository=dronescheduler \
+        --set dockerregistry=$ACR_SERVER \
+        --set ingress.hosts[0].name=$EXTERNAL_INGEST_FQDN \
+        --set ingress.hosts[0].serviceName=dronescheduler \
+        --set ingress.hosts[0].tls=false \
+        --set identity.clientid=$DRONESCHEDULER_PRINCIPAL_CLIENT_ID \
+        --set identity.resourceid=$DRONESCHEDULER_PRINCIPAL_RESOURCE_ID \
+        --set networkPolicy.egress.external.enabled=true \
+        --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
+        --set keyvault.uri=$DRONESCHEDULER_KEYVAULT_URI \
+        --set cosmosdb.id=$DATABASE_NAME \
+        --set cosmosdb.collectionid=$COLLECTION_NAME \
+        --set reason="Initial deployment" \
+        --set envs.dev=true \
+        --namespace backend-dev
+   ```
+
+   Verify the pod is created
+
+   ```bash
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=dronescheduler-v0.1.0-dev --timeout=90s
+   ```
+
+1. Deploy the Package service app
+
+   Build the Package service
+
+   ```bash
+   docker build --pull --compress -t $ACR_SERVER/package:0.1.0 ./src/shipping/package/.
+   ```
+
+   Push the image to ACR
+
+   ```bash
+   az acr login --name $ACR_NAME
+   docker push $ACR_SERVER/package:0.1.0
+   ```
+
+   Extract Azure resource details for the package app
+
+   ```bash
+   export COSMOSDB_NAME=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.packageMongoDbName.value -o tsv)
+   export COSMOSDB_CONNECTION=$(az cosmosdb list-connection-strings --name $COSMOSDB_NAME --resource-group $RESOURCE_GROUP --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
+   export COSMOSDB_COL_NAME=packages
+   ```
+
+   Deploy the Package service
+
+   ```bash
+   helm package $HELM_CHARTS/package/ -u && \
+   helm install package-v0.1.0-dev package-v0.1.0.tgz \
+        --set image.tag=0.1.0 \
+        --set image.repository=package \
+        --set ingress.hosts[0].name=$EXTERNAL_INGEST_FQDN \
+        --set ingress.hosts[0].serviceName=package \
+        --set ingress.hosts[0].tls=false \
+        --set networkPolicy.egress.external.enabled=true \
+        --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
+        --set secrets.appinsights.ikey=$AI_IKEY \
+        --set secrets.mongo.pwd=$COSMOSDB_CONNECTION \
+        --set cosmosDb.collectionName=$COSMOSDB_COL_NAME \
+        --set dockerregistry=$ACR_SERVER \
+        --set reason="Initial deployment" \
+        --set envs.dev=true \
+        --namespace backend-dev
+   ```
+
+   Verify the pod is created
+
+   ```bash
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=package-v0.1.0-dev --timeout=90s
    ```
 
 ### Next step
