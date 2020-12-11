@@ -1,0 +1,17 @@
+# Dev values for workflow.
+nameOverride: workflow
+exports:
+  data:
+    replicaCount: 1
+    image:
+      pullPolicy: Always
+    telemetry:
+      level: "Information"
+    reason: "new dev deploy"
+    resources:
+      requests:
+        cpu: 400m
+        memory: 100Mi
+      limits:
+        cpu: 664m
+        memory: 140Mi

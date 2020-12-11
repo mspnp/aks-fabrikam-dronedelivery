@@ -1,0 +1,18 @@
+# Dev values for dronescheduler.
+nameOverride: dronescheduler
+exports:
+  data:
+    replicaCount: 1
+    image:
+      pullPolicy: Always
+    telemetry:
+      level: "Information"
+    reason: "new dev deploy"
+    current: true
+    resources:
+      requests:
+        cpu: 105m
+        memory: 350Mi
+      limits:
+        cpu: 175m
+        memory: 500Mi

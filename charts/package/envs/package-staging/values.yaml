@@ -1,0 +1,23 @@
+# Staging values for package.
+nameOverride: package
+exports:
+  data:
+    replicaCount: 1
+    image:
+      pullPolicy: Always
+    log:
+      level: "info"
+    reason: "new staging deploy"
+    current: true
+    resources:
+      requests:
+        cpu: 90m
+        memory: 100Mi
+      limits:
+        cpu: 180m
+        memory: 140Mi
+    autoscaling:
+      enabled: true
+      maxReplicas: 50
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 50

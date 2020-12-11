@@ -1,0 +1,23 @@
+# Staging values for dronescheduler.
+nameOverride: dronescheduler
+exports:
+  data:
+    replicaCount: 1
+    image:
+      pullPolicy: Always
+    telemetry:
+      level: "Information"
+    reason: "new staging deploy"
+    current: true
+    resources:
+      requests:
+        cpu: 130m
+        memory: 350Mi
+      limits:
+        cpu: 270m
+        memory: 500Mi
+    autoscaling:
+      enabled: true
+      maxReplicas: 50
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 50

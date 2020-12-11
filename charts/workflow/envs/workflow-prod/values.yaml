@@ -1,0 +1,22 @@
+# Production values for workflow.
+nameOverride: workflow
+exports:
+  data:
+    replicaCount: 1
+    image:
+      pullPolicy: IfNotPresent
+    telemetry:
+      level: "Error"
+    reason: "new prod deploy"
+    resources:
+      requests:
+        cpu: 515m
+        memory: 100Mi
+      limits:
+        cpu: 1000m
+        memory: 140Mi
+    autoscaling:
+      enabled: true
+      maxReplicas: 50
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 50
