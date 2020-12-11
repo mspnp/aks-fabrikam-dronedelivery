@@ -2,9 +2,10 @@
 
 Now that you have a workload deployed, the [ASP.NET Core Docker sample web app](./09-workload.md), you can start validating and exploring this reference implementation of the [AKS secure baseline cluster](./). In addition to the workload, there are some observability validation you can perform as well.
 
-## Validate the Web App
+## Validate the application is running
 
 This section will help you to validate the workload is exposed correctly and responding to HTTP requests.
+You can send delivery requests and check their statuses.
 
 ### Steps
 
@@ -14,18 +15,43 @@ This section will help you to validate the workload is exposed correctly and res
 
    ```bash
    # query the Azure Application Gateway Public Ip
-   export APPGW_PUBLIC_IP=$(az deployment group show --resource-group rg-enterprise-networking-spokes -n spoke-BU0001A0008 --query properties.outputs.appGwPublicIpAddress.value -o tsv)
+   export APPGW_PUBLIC_IP=$(az deployment group show --resource-group rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.appGwPublicIpAddress.value -o tsv)
    ```
 
 1. Create `A` Record for DNS
 
    > :bulb: You can simulate this via a local hosts file modification. You're welcome to add a real DNS entry for your specific deployment's application domain name, if you have access to do so.
 
-   Map the Azure Application Gateway public IP address to the application domain name. To do that, please edit your hosts file (`C:\Windows\System32\drivers\etc\hosts` or `/etc/hosts`) and add the following record to the end: `${APPGW_PUBLIC_IP} bicycle.contoso.com`
+   Map the Azure Application Gateway public IP address to the application domain name. To do that, please edit your hosts file (`C:\Windows\System32\drivers\etc\hosts` or `/etc/hosts`) and add the following record to the end: `${APPGW_PUBLIC_IP} dronedelivery.fabrikam.com`
 
-1. Browse to the site (e.g. <https://bicycle.contoso.com>).
+1. Send a request to <https://dronedelivery.fabrikam.com>.
 
-   > :bulb: A TLS warning will be present due to using a self-signed certificate.
+   > :bulb: Since the certificate used for TLS is self-signed, the request disables TLS validation using the '-k' option.
+
+   ```bash
+   curl -X POST "https://$EXTERNAL_INGEST_FQDN/api/deliveryrequests" --header 'Content-Type: application/json' --header 'Accept: application/json' -k -d '{
+      "confirmationRequired": "None",
+      "deadline": "",
+      "dropOffLocation": "drop off",
+      "expedited": true,
+      "ownerId": "myowner",
+      "packageInfo": {
+        "packageId": "mypackage",
+        "size": "Small",
+        "tag": "mytag",
+        "weight": 10
+      },
+      "pickupLocation": "my pickup",
+      "pickupTime": "2019-05-08T20:00:00.000Z"
+    }' > deliveryresponse.json
+   ```
+
+1. Check the request status
+
+   ```bash
+   DELIVERY_ID=$(cat deliveryresponse.json | jq -r .deliveryId)
+   curl "https://$EXTERNAL_INGEST_FQDN/api/deliveries/$DELIVERY_ID" --header 'Accept: application/json' -k
+   ```
 
 ## Validate Web Application Firewall functionality
 
