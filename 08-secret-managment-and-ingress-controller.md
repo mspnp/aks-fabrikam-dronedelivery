@@ -118,7 +118,7 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
 
    ```bash
    INGRESS_CONTROLLER_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.appGatewayControllerPrincipalResourceId.value -o tsv)
-   INGRESS_CONTROLLER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $INGRESS_CONTROLLER_ID_NAME --query clientId -o tsv)
+   INGRESS_CONTROLLER_PRINCIPAL_CLIENT_ID=$(az identity show --ids $INGRESS_CONTROLLER_PRINCIPAL_RESOURCE_ID --query clientId -o tsv)
    ```
 1. Get the Name of Application Gateway
 
