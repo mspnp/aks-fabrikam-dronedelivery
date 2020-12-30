@@ -793,6 +793,18 @@
                                 "scope": "[parameters('targetVnetResourceId')]",
                                 "principalType": "ServicePrincipal"
                             }
+                        },
+                        {
+                            "type": "Microsoft.Network/publicIpAddresses/providers/roleAssignments",
+                            "apiVersion": "2018-09-01-preview",
+                            "name": "[concat('pip-ShippingDroneDelivery-00', '/Microsoft.Authorization/', guid(resourceGroup().id, variables('networkContributorRole'),'-agic-system-assigned-managed-identity-appw-public-ip'))]",
+                            "comments": "Grant the Azure App Gateway Ingress Controller manage identity with Network Contributor role permissions over the Application Gateway Public Ip",
+                            "properties": {
+                                "roleDefinitionId": "[variables('networkContributorRole')]",
+                                "principalId": "[parameters('ingressControllerPrincipalId')]",
+                                "scope": "[resourceId(subscription().subscriptionId,variables('vNetResourceGroup'),'Microsoft.Network/publicIpAddresses','pip-ShippingDroneDelivery-00')]",
+                                "principalType": "ServicePrincipal"
+                            }
                         }
                     ]
                 }
@@ -1784,6 +1796,20 @@
             "properties": {
                 "roleDefinitionId": "[variables('managedIdentityOperatorRole')]",
                 "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-11-01').identityProfile.kubeletidentity.objectId]",
+                "principalType": "ServicePrincipal"
+            }
+        },
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities/providers/roleAssignments",
+            "name": "[concat('appw-to-keyvault', '/Microsoft.Authorization/', guid(concat(resourceGroup().id, 'appw-to-keyvault'), variables('managedIdentityOperatorRole')))]",
+            "apiVersion": "2018-09-01-preview",
+            "comments": "Grant the AGIC with Manage Identity Operator role permissions over the application gateway manage identity",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'appw-to-keyvault')]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[variables('managedIdentityOperatorRole')]",
+                "principalId": "[parameters('ingressControllerPrincipalId')]",
                 "principalType": "ServicePrincipal"
             }
         },
