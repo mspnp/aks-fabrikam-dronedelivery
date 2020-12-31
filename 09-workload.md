@@ -309,12 +309,11 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    ```bash
    export DRONESCHEDULER_KEYVAULT_URI=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
    export DRONESCHEDULER_COSMOSDB_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
-   export ENDPOINT_URL=$(az cosmosdb show -n $DRONESCHEDULER_COSMOSDB_NAME -g rg-shipping-dronedelivery --query documentEndpoint -o tsv)
-   export AUTH_KEY=$(az cosmosdb list-keys -n $DRONESCHEDULER_COSMOSDB_NAME -g rg-shipping-dronedelivery --query primaryMasterKey -o tsv)
-   export DATABASE_NAME="invoicing"
-   export COLLECTION_NAME="utilization"
+   export DRONESCHEDULER_DATABASE_NAME="invoicing"
+   export DRONESCHEDULER_COLLECTION_NAME="utilization"
    export DRONESCHEDULER_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.droneSchedulerPrincipalResourceId.value -o tsv) && \
    export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DRONESCHEDULER_ID_NAME --query clientId -o tsv)
+   export DRONESCHEDULER_KEYVAULT_URI=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
    ```
 
    Deploy the DroneScheduler service
@@ -325,16 +324,13 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
         --set image.tag=0.1.0 \
         --set image.repository=dronescheduler \
         --set dockerregistry=$ACR_SERVER \
-        --set ingress.hosts[0].name=$EXTERNAL_INGEST_FQDN \
-        --set ingress.hosts[0].serviceName=dronescheduler \
-        --set ingress.hosts[0].tls=false \
         --set identity.clientid=$DRONESCHEDULER_PRINCIPAL_CLIENT_ID \
         --set identity.resourceid=$DRONESCHEDULER_PRINCIPAL_RESOURCE_ID \
         --set networkPolicy.egress.external.enabled=true \
         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
         --set keyvault.uri=$DRONESCHEDULER_KEYVAULT_URI \
-        --set cosmosdb.id=$DATABASE_NAME \
-        --set cosmosdb.collectionid=$COLLECTION_NAME \
+        --set cosmosdb.id=$DRONESCHEDULER_DATABASE_NAME \
+        --set cosmosdb.collectionid=$DRONESCHEDULER_COLLECTION_NAME \
         --set reason="Initial deployment" \
         --set envs.dev=true \
         --namespace backend-dev
