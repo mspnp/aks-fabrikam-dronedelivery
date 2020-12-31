@@ -17,6 +17,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     kubernetes.io/ingress.allow-http: "false"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "appgw-ssl-certificate"
     # TODO: modify delivery containers to start listening https instead (dont forget
     # probes as they override the appgw probes cfg). Then uncomment the following
     # annotations to have e2e TLS: https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1048

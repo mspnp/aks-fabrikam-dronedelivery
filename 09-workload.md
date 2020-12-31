@@ -124,7 +124,7 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
         --set image.tag=0.1.0 \
         --set image.repository=delivery \
         --set dockerregistry=$ACR_SERVER \
-        --set ingress.hosts[0].name=shipping.aks-agic.fabrikam.com \
+        --set ingress.hosts[0].name=dronedelivery.fabrikam.com \
         --set ingress.hosts[0].serviceName=delivery \
         --set networkPolicy.egress.external.enabled=true \
         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
@@ -177,7 +177,7 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
         --set image.tag=0.1.0 \
         --set image.repository=ingestion \
         --set dockerregistry=$ACR_SERVER \
-        --set ingress.hosts[0].name=shipping.aks-agic.fabrikam.com \
+        --set ingress.hosts[0].name=dronedelivery.fabrikam.com \
         --set ingress.hosts[0].serviceName=ingestion \
         --set networkPolicy.egress.external.enabled=true \
         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \

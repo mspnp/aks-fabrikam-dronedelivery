@@ -608,7 +608,7 @@
                 "enableHttp2": false,
                 "sslCertificates": [
                     {
-                        "name": "[concat(variables('agwName'), '-ssl-certificate')]",
+                        "name": "appgw-ssl-certificate",
                         "properties": {
                             "keyVaultSecretId": "[concat(reference(variables('keyVaultName')).vaultUri,'secrets/sslcert')]"
                         }
