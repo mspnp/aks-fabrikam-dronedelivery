@@ -1,0 +1,79 @@
+# Default values for ingestion.
+replicaCount: 1
+
+
+dockerregistrynamespace:
+dockerregistry:
+
+
+image:
+  repository:
+  tag:
+  pullPolicy: IfNotPresent
+
+
+# specify an installation/upgrade reason
+reason: unknown
+
+
+# probes
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 80
+  initialDelaySeconds: 120
+  periodSeconds: 30
+  successThreshold: 1
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: /api/probe
+    port: 80
+  initialDelaySeconds: 120
+  periodSeconds: 30
+  successThreshold: 1
+  failureThreshold: 5
+
+
+telemetry:
+  level: "error"
+
+
+# indicate what environment is meant to be installed/upgraded
+envs:
+  dev: false
+  prod: false
+  qa: false
+  staging: false
+
+
+current: false
+
+
+# Horizontal Pod Autoscaling
+autoscaling:
+  enabled: false
+  maxReplicas:
+  minReplicas:
+  targetCPUUtilizationPercentage:
+
+
+# Pod-to-pod traffic: east-west
+networkPolicy:
+  egress:
+    enabled: true
+    allowAll: false
+    external:
+      enabled: false
+      clusterSubnetPrefix:
+  ingress:
+    enabled: true
+    allowAll: false
+    externalSubnet:
+      enabled: false
+      subnetPrefix:
+
+service:
+  targetPort: 80
+  targetProtocol: TCP

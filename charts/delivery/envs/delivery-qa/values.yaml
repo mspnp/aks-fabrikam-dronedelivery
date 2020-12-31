@@ -1,0 +1,18 @@
+# QA values for delivery.
+nameOverride: delivery
+exports:
+  data:
+    replicaCount: 1
+    image:
+      pullPolicy: Always
+    telemetry:
+      level: "Information"
+    reason: "new qa deploy"
+    current: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 350Mi
+      limits:
+        cpu: 150m
+        memory: 500Mi

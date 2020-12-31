@@ -1,0 +1,18 @@
+# Dev values for package.
+nameOverride: package
+exports:
+  data:
+    replicaCount: 1
+    image:
+      pullPolicy: Always
+    log:
+      level: "info"
+    reason: "new dev deploy"
+    current: true
+    resources:
+      requests:
+        cpu: 70m
+        memory: 100Mi
+      limits:
+        cpu: 117m
+        memory: 140Mi

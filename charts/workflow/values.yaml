@@ -1,0 +1,107 @@
+# Default values for workflow.
+nameOverride: workflow
+
+
+replicaCount: 1
+
+
+dockerregistrynamespace:
+dockerregistry:
+
+
+identity:
+  clientid:
+  resourceid:
+
+
+image:
+  repository:
+  tag:
+  pullPolicy: IfNotPresent
+
+
+# specify an installation/upgrade reason
+reason: unknown
+
+
+serviceuri:
+  delivery: http://delivery/api/Deliveries/
+  drone: http://dronescheduler/api/DroneDeliveries/
+  package: http://package/api/packages/
+
+servicerequest:
+  maxretries: 3
+  circuitbreakerthreshold: 0.5
+  circuitbreakersamplingperiodseconds: 5
+  circuitbreakerminimumthroughput: 20
+  circuitbreakerbreakduration: 30
+  maxbulkheadsize: 100
+  maxbulkheadqueuesize: 25
+
+
+# probes
+healthcheck:
+  delay:
+readinessProbe:
+  exec:
+    command:
+    - cat
+    - /app/healthz
+  initialDelaySeconds: 40
+  periodSeconds: 15
+  timeoutSeconds: 2
+  failureThreshold: 5
+
+livenessProbe:
+  exec:
+    command:
+    - find
+    - /app/healthz
+    - -mmin
+    - -1
+  initialDelaySeconds: 50
+  periodSeconds: 30
+
+
+keyvault:
+  name:
+  resourcegroup:
+  subscriptionid:
+  tenantid:
+
+
+telemetry:
+  level: "Error"
+
+
+# indicate what environment is meant to be installed/upgraded
+envs:
+  dev: false
+  prod: false
+  qa: false
+  staging: false
+
+
+# Horizontal Pod Autoscaling
+autoscaling:
+  enabled: false
+  maxReplicas:
+  minReplicas:
+  targetCPUUtilizationPercentage:
+
+
+# Pod-to-pod traffic: east-west
+networkPolicy:
+  egress:
+    enabled: true
+    allowAll: false
+    external:
+      enabled: false
+      clusterSubnetPrefix:
+
+# indicate pods this app will attemp to establish a connection with
+workflow:
+  customPodLabels:
+    dd.fabrikam.com/egress-delivery: "true"
+    dd.fabrikam.com/egress-dronescheduler: "true"
+    dd.fabrikam.com/egress-package: "true"
