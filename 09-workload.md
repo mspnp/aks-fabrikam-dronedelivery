@@ -62,6 +62,24 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    ACR_SERVER=$(az acr show -n $ACR_NAME --query loginServer -o tsv)
    ```
 
+1. Set the AKS cluster and Application Gateway subnet prefixes
+
+   ```bash
+   CLUSTER_SUBNET_PREFIX="10.240.0.0/22"
+   GATEWAY_SUBNET_PREFIX="10.240.4.16/28"
+   ```
+
+1. Enable the public access to your ACR temporary
+
+   :bulb: The configured network access to the registry is limited to certain
+   networks. In the following steps you are going to need access from your local
+   machine to the ACR instace, so you can upload the Fabrikam Drone Delivery
+   Docker images to it.
+
+   ```bash
+   az acr update --name $ACR_NAME --public-network-enabled true
+   ```
+
 1. Deploy the Delivery service app
 
    Build the Delivery service
@@ -80,13 +98,13 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Extract Azure resource details for the delivery app
 
    ```bash
+   DELIVERY_ID_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.deliveryIdName.value -o tsv)
    DELIVERY_KEYVAULT_URI=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryKeyVaultUri.value -o tsv)
    DELIVERY_COSMOSDB_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryCosmosDbName.value -o tsv)
    DELIVERY_DATABASE_NAME="${DELIVERY_COSMOSDB_NAME}-db"
    DELIVERY_COLLECTION_NAME="${DELIVERY_COSMOSDB_NAME}-col"
    DELIVERY_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.deliveryPrincipalResourceId.value -o tsv)
    DELIVERY_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DELIVERY_ID_NAME --query clientId -o tsv)
-   DELIVERY_INGRESS_TLS_SECRET_NAME=delivery-ingress-tls
    ```
 
    Deploy the Delivery service
@@ -97,11 +115,8 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
         --set image.tag=0.1.0 \
         --set image.repository=delivery \
         --set dockerregistry=$ACR_SERVER \
-        --set ingress.hosts[0].name=$EXTERNAL_INGEST_FQDN \
+        --set ingress.hosts[0].name=shipping.aks-agic.fabrikam.com \
         --set ingress.hosts[0].serviceName=delivery \
-        --set ingress.hosts[0].tls=false \
-        --set ingress.tls.secrets[0].key="$(cat k8sic.key)" \
-        --set ingress.tls.secrets[0].certificate="$(cat k8sic.crt)" \
         --set networkPolicy.egress.external.enabled=true \
         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
         --set networkPolicy.ingress.externalSubnet.enabled=true \
@@ -139,10 +154,10 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Extract Azure resource details for the ingestion app
 
    ```bash
-   export INGESTION_QUEUE_NAMESPACE=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.ingestionQueueNamespace.value -o tsv)
-   export INGESTION_QUEUE_NAME=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.ingestionQueueName.value -o tsv)
-   export INGESTION_ACCESS_KEY_NAME=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.ingestionServiceAccessKeyName.value -o tsv)
-   export INGESTION_ACCESS_KEY_VALUE=$(az servicebus namespace authorization-rule keys list --resource-group $RESOURCE_GROUP --namespace-name $INGESTION_QUEUE_NAMESPACE --name $INGESTION_ACCESS_KEY_NAME --query primaryKey -o tsv)
+   export INGESTION_QUEUE_NAMESPACE=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionQueueNamespace.value -o tsv)
+   export INGESTION_QUEUE_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionQueueName.value -o tsv)
+   export INGESTION_ACCESS_KEY_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionServiceAccessKeyName.value -o tsv)
+   export INGESTION_ACCESS_KEY_VALUE=$(az servicebus namespace authorization-rule keys list --resource-group rg-shipping-dronedelivery --namespace-name $INGESTION_QUEUE_NAMESPACE --name $INGESTION_ACCESS_KEY_NAME --query primaryKey -o tsv)
    export INGRESS_TLS_SECRET_NAME=ingestion-ingress-tls
    ```
 
@@ -199,8 +214,8 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Extract Azure resource details for the workflow app
 
    ```bash
-   export WORKFLOW_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g $RESOURCE_GROUP -n $IDENTITIES_DEV_DEPLOYMENT_NAME --query properties.outputs.workflowPrincipalResourceId.value -o tsv) && \
-   export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g $RESOURCE_GROUP -n $WORKFLOW_ID_NAME --query clientId -o tsv)
+   export WORKFLOW_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.workflowPrincipalResourceId.value -o tsv) && \
+   export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $WORKFLOW_ID_NAME --query clientId -o tsv)
    ```
 
    Deploy the Workflow service
@@ -216,7 +231,7 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
         --set networkPolicy.egress.external.enabled=true \
         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
         --set keyvault.name=$WORKFLOW_KEYVAULT_NAME \
-        --set keyvault.resourcegroup=$RESOURCE_GROUP \
+        --set keyvault.resourcegroup=rg-shipping-dronedelivery \
         --set keyvault.subscriptionid=$SUBSCRIPTION_ID \
         --set keyvault.tenantid=$TENANT_ID \
         --set reason="Initial deployment" \
@@ -235,7 +250,7 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Build the DroneScheduler service
 
    ```bash
-   docker build --pull --compress -t $ACR_SERVER/dronescheduler:0.1.0 ./src/shipping/dronescheduler/.
+   docker build -f ./src/shipping/dronescheduler/Dockerfile --pull --compress -t $ACR_SERVER/dronescheduler:0.1.0 ./src/shipping/.
    ```
 
    Push the image to ACR
@@ -248,14 +263,14 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Extract Azure resource details for the dronescheduler app
 
    ```bash
-   export DRONESCHEDULER_KEYVAULT_URI=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
-   export DRONESCHEDULER_COSMOSDB_NAME=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
-   export ENDPOINT_URL=$(az cosmosdb show -n $DRONESCHEDULER_COSMOSDB_NAME -g $RESOURCE_GROUP --query documentEndpoint -o tsv)
-   export AUTH_KEY=$(az cosmosdb list-keys -n $DRONESCHEDULER_COSMOSDB_NAME -g $RESOURCE_GROUP --query primaryMasterKey -o tsv)
+   export DRONESCHEDULER_KEYVAULT_URI=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
+   export DRONESCHEDULER_COSMOSDB_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
+   export ENDPOINT_URL=$(az cosmosdb show -n $DRONESCHEDULER_COSMOSDB_NAME -g rg-shipping-dronedelivery --query documentEndpoint -o tsv)
+   export AUTH_KEY=$(az cosmosdb list-keys -n $DRONESCHEDULER_COSMOSDB_NAME -g rg-shipping-dronedelivery --query primaryMasterKey -o tsv)
    export DATABASE_NAME="invoicing"
    export COLLECTION_NAME="utilization"
-   export DRONESCHEDULER_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g $RESOURCE_GROUP -n $IDENTITIES_DEV_DEPLOYMENT_NAME --query properties.outputs.droneSchedulerPrincipalResourceId.value -o tsv) && \
-   export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g $RESOURCE_GROUP -n $DRONESCHEDULER_ID_NAME --query clientId -o tsv)
+   export DRONESCHEDULER_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.droneSchedulerPrincipalResourceId.value -o tsv) && \
+   export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DRONESCHEDULER_ID_NAME --query clientId -o tsv)
    ```
 
    Deploy the DroneScheduler service
@@ -305,8 +320,8 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Extract Azure resource details for the package app
 
    ```bash
-   export COSMOSDB_NAME=$(az group deployment show -g $RESOURCE_GROUP -n $DEV_DEPLOYMENT_NAME --query properties.outputs.packageMongoDbName.value -o tsv)
-   export COSMOSDB_CONNECTION=$(az cosmosdb list-connection-strings --name $COSMOSDB_NAME --resource-group $RESOURCE_GROUP --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
+   export COSMOSDB_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.packageMongoDbName.value -o tsv)
+   export COSMOSDB_CONNECTION=$(az cosmosdb list-connection-strings --name $COSMOSDB_NAME --resource-group rg-shipping-dronedelivery --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
    export COSMOSDB_COL_NAME=packages
    ```
 
@@ -335,6 +350,12 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
 
    ```bash
    kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=package-v0.1.0-dev --timeout=90s
+   ```
+
+1. Disable the public access to your ACR temporary
+
+   ```bash
+   az acr update --name $ACR_NAME --public-network-enabled false
    ```
 
 ### Next step
