@@ -651,7 +651,7 @@
                             },
                             "protocol": "Https",
                             "sslCertificate": {
-                                "id": "[concat(variables('apwResourceId'), '/sslCertificates/', variables('agwName'), '-ssl-certificate')]"
+                                "id": "[concat(variables('apwResourceId'), '/sslCertificates/', 'appgw-ssl-certificate')]"
                             },
                             "hostName": "dronedelivery.fabrikam.com",
                             "hostNames": [
