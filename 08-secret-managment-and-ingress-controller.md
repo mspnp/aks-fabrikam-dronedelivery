@@ -162,7 +162,7 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
      --set verbosityLevel=3 \
      --set aksClusterConfiguration.apiServerAddress=$(az aks show -n $AKS_CLUSTER_NAME -g rg-shipping-dronedelivery --query fqdn -o tsv) \
      --set appgw.usePrivateIP=false \
-     --version 1.2.1
+     --version 1.3.0
    ```
 
 1. Wait for AGIC to be ready
