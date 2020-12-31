@@ -64,9 +64,18 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
 
 1. Set the AKS cluster and Application Gateway subnet prefixes
 
+   :book: The Fabrikan Drone Delivery application follow the zero trust principle when establishing network connections between containers. Initially any container is allowed to establish a connection against another one. The following information is required to create ALLOW Network Policies.
+
    ```bash
    CLUSTER_SUBNET_PREFIX="10.240.0.0/22"
    GATEWAY_SUBNET_PREFIX="10.240.4.16/28"
+   ```
+
+1. Get the Azure Application Insights settings
+
+   ```bash
+   export AI_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.appInsightsName.value -o tsv)
+   export AI_IKEY=$(az resource show -g rg-shipping-dronedelivery -n $AI_NAME --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv)
    ```
 
 1. Enable the public access to your ACR temporary
@@ -158,24 +167,18 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    export INGESTION_QUEUE_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionQueueName.value -o tsv)
    export INGESTION_ACCESS_KEY_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionServiceAccessKeyName.value -o tsv)
    export INGESTION_ACCESS_KEY_VALUE=$(az servicebus namespace authorization-rule keys list --resource-group rg-shipping-dronedelivery --namespace-name $INGESTION_QUEUE_NAMESPACE --name $INGESTION_ACCESS_KEY_NAME --query primaryKey -o tsv)
-   export INGRESS_TLS_SECRET_NAME=ingestion-ingress-tls
    ```
 
    Deploy the Ingestion service
 
    ```bash
-   helm package $HELM_CHARTS/ingestion/ -u && \
+   helm package ./charts/ingestion/ -u
    helm install ingestion-v0.1.0-dev ingestion-v0.1.0.tgz \
         --set image.tag=0.1.0 \
         --set image.repository=ingestion \
         --set dockerregistry=$ACR_SERVER \
-        --set ingress.hosts[0].name=$EXTERNAL_INGEST_FQDN \
+        --set ingress.hosts[0].name=shipping.aks-agic.fabrikam.com \
         --set ingress.hosts[0].serviceName=ingestion \
-        --set ingress.hosts[0].tls=true \
-        --set ingress.hosts[0].tlsSecretName=$INGRESS_TLS_SECRET_NAME \
-        --set ingress.tls.secrets[0].name=$INGRESS_TLS_SECRET_NAME \
-        --set ingress.tls.secrets[0].key="$(cat ingestion-ingress-tls.key)" \
-        --set ingress.tls.secrets[0].certificate="$(cat ingestion-ingress-tls.crt)" \
         --set networkPolicy.egress.external.enabled=true \
         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
         --set networkPolicy.ingress.externalSubnet.enabled=true \
@@ -221,7 +224,7 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Deploy the Workflow service
 
    ```bash
-   helm package $HELM_CHARTS/workflow/ -u && \
+   helm package ./charts/workflow/ -u && \
    helm install workflow-v0.1.0-dev workflow-v0.1.0.tgz \
         --set image.tag=0.1.0 \
         --set image.repository=workflow \
@@ -276,7 +279,7 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Deploy the DroneScheduler service
 
    ```bash
-   helm package $HELM_CHARTS/dronescheduler/ -u && \
+   helm package ./charts/dronescheduler/ -u && \
    helm install dronescheduler-v0.1.0-dev dronescheduler-v0.1.0.tgz \
         --set image.tag=0.1.0 \
         --set image.repository=dronescheduler \
@@ -328,7 +331,7 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Deploy the Package service
 
    ```bash
-   helm package $HELM_CHARTS/package/ -u && \
+   helm package ./charts/package/ -u && \
    helm install package-v0.1.0-dev package-v0.1.0.tgz \
         --set image.tag=0.1.0 \
         --set image.repository=package \
