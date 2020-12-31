@@ -219,6 +219,47 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    ```bash
    export WORKFLOW_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.workflowPrincipalResourceId.value -o tsv) && \
    export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $WORKFLOW_ID_NAME --query clientId -o tsv)
+   export WORKFLOW_KEYVAULT_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.workflowKeyVaultName.value -o tsv)
+   ```
+
+   Create the Workflows's Secret Provider Class resource
+
+   ```bash
+   cat <<EOF | kubectl apply -f -
+   apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
+   kind: SecretProviderClass
+   metadata:
+     name: workflow-secrets-csi-akv
+     namespace: backend-dev
+   spec:
+     provider: azure
+     parameters:
+       usePodIdentity: "true"
+       keyvaultName: "${WORKFLOW_KEYVAULT_NAME}"
+       objects:  |
+         array:
+           - |
+             objectName: QueueName
+             objectAlias: QueueName
+             objectType: secret
+           - |
+             objectName: QueueEndpoint
+             objectAlias: QueueEndpoint
+             objectType: secret
+           - |
+             objectName: QueueAccessPolicyName
+             objectAlias: QueueAccessPolicyName
+             objectType: secret
+           - |
+             objectName: QueueAccessPolicyKey
+             objectAlias: QueueAccessPolicyKey
+             objectType: secret
+           - |
+             objectName: ApplicationInsights-InstrumentationKey
+             objectAlias: ApplicationInsights-InstrumentationKey
+             objectType: secret
+       tenantId: "${TENANT_ID}"
+   EOF
    ```
 
    Deploy the Workflow service
@@ -239,7 +280,7 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
         --set keyvault.tenantid=$TENANT_ID \
         --set reason="Initial deployment" \
         --set envs.dev=true \
-        --namespace backend-de
+        --namespace backend-dev
    ```
 
    Verify the pod is created

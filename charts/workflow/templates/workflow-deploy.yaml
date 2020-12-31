@@ -92,11 +92,11 @@ spec:
             memory: {{ required "A valid .Values.resources.limits.memory entry required!" .Values.resources.limits.memory }}
         volumeMounts:
         - name: workflow
-          mountPath: /kvmnt
+          mountPath: /csimnt
           readOnly: true
         env:
         - name: CONFIGURATION_FOLDER
-          value: /kvmnt
+          value: /csimnt
         - name: HEALTHCHECK_INITIAL_DELAY
           value: {{ default "30000" .Values.healthcheck.delay | quote }}
         - name: SERVICE_URI_DELIVERY
@@ -125,14 +125,8 @@ spec:
           value: 169.254.169.254
       volumes:
       - name: workflow
-        flexVolume:
-          driver: "azure/kv"
-          options:
-            usepodidentity: "true"
-            keyvaultname: {{ .Values.keyvault.name }}
-            keyvaultobjectnames: QueueName;QueueEndpoint;QueueAccessPolicyName;QueueAccessPolicyKey;ApplicationInsights-InstrumentationKey
-            keyvaultobjecttypes: secret;secret;secret;secret;secret
-            keyvaultobjectversions: ""
-            resourcegroup: {{ .Values.keyvault.resourcegroup }}
-            subscriptionid: {{ .Values.keyvault.subscriptionid }}
-            tenantid: {{ .Values.keyvault.tenantid }}
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "workflow-secrets-csi-akv"
