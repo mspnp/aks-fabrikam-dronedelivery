@@ -360,9 +360,10 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    Extract Azure resource details for the package app
 
    ```bash
-   export COSMOSDB_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.packageMongoDbName.value -o tsv)
-   export COSMOSDB_CONNECTION=$(az cosmosdb list-connection-strings --name $COSMOSDB_NAME --resource-group rg-shipping-dronedelivery --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
-   export COSMOSDB_COL_NAME=packages
+   export PACKAGE_DATABASE_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.packageMongoDbName.value -o tsv)
+   export PACKAGE_CONNECTION=$(az cosmosdb list-connection-strings --name $PACKAGE_DATABASE_NAME --resource-group rg-shipping-dronedelivery --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
+   export PACKAGE_COLLECTION_NAME=packages
+   export PACKAGE_INGRESS_TLS_SECRET_NAME=package-ingress-tls
    ```
 
    Deploy the Package service
@@ -372,14 +373,11 @@ The cluster now has an [Traefik configured with a TLS certificate as well as a A
    helm install package-v0.1.0-dev package-v0.1.0.tgz \
         --set image.tag=0.1.0 \
         --set image.repository=package \
-        --set ingress.hosts[0].name=$EXTERNAL_INGEST_FQDN \
-        --set ingress.hosts[0].serviceName=package \
-        --set ingress.hosts[0].tls=false \
         --set networkPolicy.egress.external.enabled=true \
         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
         --set secrets.appinsights.ikey=$AI_IKEY \
-        --set secrets.mongo.pwd=$COSMOSDB_CONNECTION \
-        --set cosmosDb.collectionName=$COSMOSDB_COL_NAME \
+        --set secrets.mongo.pwd=$PACKAGE_CONNECTION \
+        --set cosmosDb.collectionName=$PACKAGE_COLLECTION_NAME \
         --set dockerregistry=$ACR_SERVER \
         --set reason="Initial deployment" \
         --set envs.dev=true \
