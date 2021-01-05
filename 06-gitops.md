@@ -13,6 +13,7 @@ GitOps allows a team to author Kubernetes manifest files, persist them in their 
 * The workload's namespace and its resource quotas
 * Zero trust Kubernetes Network Policies within the backend namespace
 * Kubernetes RBAC permissions for Azure Application Insights
+* Resource Quotas for the workload namespaces
 
 1. Install `kubectl` 1.19 or newer. (`kubctl` supports +/-1 Kubernetes version.)
 

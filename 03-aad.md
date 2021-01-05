@@ -4,7 +4,7 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 
 ## Steps
 
-> :book: The Fabrikam Drone Delivery Azure AD team requires all admin access to AKS clusters be security-group based. This applies to the new AKS cluster that is being built for the Drone Delivery application under the shipping business unit. Kubernetes RBAC will be AAD-backed and access granted based on a user's identity or directory group membership.
+> :book: The Fabrikam Drone Delivery Azure AD team requires all admin access to AKS clusters be security-group based. This applies to the new AKS cluster that is being built for the Fabrikam Drone Delivery Shipping application under the shipping business unit. Kubernetes RBAC will be AAD-backed and access granted based on a user's identity or directory group membership.
 
 1. Query and save your Azure subscription tenant id
 

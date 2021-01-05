@@ -4,13 +4,6 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
 
 ## Steps
 
-1. Ensure Flux has created the following namespace
-
-   ```bash
-   # press Ctrl-C once you receive a successful response
-   kubectl get ns backend-dev -w
-   ```
-
 1. Create the Ingress Controller's Secret Provider Class resource
 
    > The Ingress Controller will be exposing the wildcard TLS certificate you created in a prior step. It uses the Azure Key Vault CSI Provider to mount the certificate which is managed and stored in Azure Key Vault. Once mounted, Traefik can use it.
