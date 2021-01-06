@@ -8,7 +8,7 @@ Now that the [hub-spoke network is provisioned](./04-networking.md), the next st
 
 1. Create the AKS cluster resource group.
 
-   > :book: The app team working on behalf of business unit shipping is looking to create an AKS cluster of the app they are creating (Application ID: Drone Delivery). They have worked with the organization's networking team and have been provisioned a spoke network in which to lay their cluster and network-aware external resources into (such as Application Gateway). They took that information and added it to their [`cluster-stamp.json`](./cluster-stamp.json) and [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) files.
+   > :book: The app team working on behalf of business unit "shipping" is looking to create an AKS cluster of the app they are creating (Application ID: Drone Delivery). They have worked with the organization's networking team and have been provisioned a spoke network in which to lay their cluster and network-aware external resources into (such as Application Gateway). They took that information and added it to their [`cluster-stamp.json`](./cluster-stamp.json) and [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) files.
    >
    > They create 3 dedicated resource groups to be the parent groups for the applications during its lifetime. These are mainly for building time and runtime.  Additionally, the individual user identities for in-cluster apps are going to be created as part of this step.
 

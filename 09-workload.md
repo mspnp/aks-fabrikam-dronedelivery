@@ -1,6 +1,6 @@
  # Deploy Workload (Fabrikam Drone Delivery Shipping app)
 
-The cluster now has an [Azure Application Gateway Ingress Controller configured with a SSL certificate pre-installed integrated with Azure Key Vault](./08-secret-managment-and-ingress-controller.md). The last step in the process is to deploy the workload, which will demonstrate the system's functions and install the Fabrikam Drone Delivery app.
+The cluster now has an [Azure Application Gateway Ingress Controller configured with a SSL certificate pre-installed integrated with Azure Key Vault](./08-secret-managment-and-ingress-controller.md). The last step in the process is to deploy the  Fabrikam Drone Delivery app, which will demonstrate the system's functions.
 
 ## Steps
 
@@ -12,10 +12,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 >  - Package service. Manages packages.
 >  - Drone service. Schedules drones and monitors drones in flight.
 >
-> The Fabrikam Drone Delivery app team is about to deploy all the microservices
-> into the AKS cluster. They all are going to be deployed in the same way,
-> it will require to build their Docker images, collect values like Azure service names or any
-> other kind of information, and deploy the app using Helm.
+> The Fabrikam Drone Delivery app team is about to deploy all the microservices into the AKS cluster. They all are going to be deployed in the same way; it will require to build their Docker images, collect values like Azure service names or any other kind of information, and deploy using Helm.
 
 ![](./architecture.png)
 

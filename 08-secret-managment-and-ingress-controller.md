@@ -45,10 +45,7 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
 
 1. Obtain all the identity info to install Azure App Gateway Ingress Controller
 
-   > :book: the app team wants to use Azure AD Pod Identity to authenticate its
-   > ingress controller pod so they will need to obtain indentity information such us the
-   > user managed identity resource id and client id for the ingress controller created as part of the cluster pre requisites.
-   > This way when installing Azure Application Gateway Ingress Controller they can provide such information to create the Kubernetes Azure Identity objects.
+   > :book: the app team wants to use Azure AD Pod Identity to assign an identity to its ingress controller pod, so they will need to obtain indentity information such us the user managed identity resource id and client id for the ingress controller created as part of the cluster pre requisites. This way when installing Azure Application Gateway Ingress Controller they can provide such information to create the Kubernetes Azure Identity objects.
 
    ```bash
    INGRESS_CONTROLLER_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.appGatewayControllerPrincipalResourceId.value -o tsv)
@@ -64,19 +61,7 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
 
 1. Install the Azure App Gateway Ingress Controller
 
-   > :book: The Fabrikam Drone Delivery app's team has made the decision of having a
-   > separated ingress controller, since the team wants to simplify the
-   > ingestion of traffic into the AKS cluster, keep it safe, improve the performance, and save resources.
-   > The selected solution in this case was the Azure App Gateway
-   > Ingress Controller. This eliminates the necessity of an extra load
-   > balancer since pods will establish direct connections against their Azure App Gateway service
-   > reducing the number of hops which results in better performance.
-   > The traffic is now being handle exclusively by Azure
-   > Application Gateway that has built-in capabilities for auto-scaling, and the Fabrikam Drone Delivery workload pods without
-   > the necessity of scaling out any other component in the middle as it will
-   > be the case compared against any other popular ingress controller solutions that ends up
-   > consuming resources from the AKS cluster. Additionally, Azure App Gateway has
-   > End-to-end TLS integrated with a web aplication firewall in front.
+   > :book: The Fabrikam Drone Delivery app's team has made the decision of having an externalized ingress controller, since the team wants to simplify the ingestion of traffic into the AKS cluster, keep it safe, improve the performance, and save resources. The selected solution in this case was the Azure App Gateway Ingress Controller. This eliminates the necessity of an extra load balancer since pods will establish direct connections against their Azure App Gateway service reducing the number of hops which results in better performance. The traffic is now being handle exclusively by Azure Application Gateway that has built-in capabilities for auto-scaling, and the Fabrikam Drone Delivery workload pods without the necessity of scaling out any other component in the middle as it will be the case compared against any other in-cluster ingress controller solutions that ends up consuming added resources from the AKS cluster. Additionally, Azure Application Gateway has end-to-end TLS integrated with a web aplication firewall in front.
 
    ```bash
    helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
