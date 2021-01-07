@@ -35,10 +35,6 @@ This is the starting point for the instructions on deploying the [AKS Secure Bas
    > :bulb: The steps shown here and elsewhere in the reference implementation use Bash shell commands. On Windows, you can use the [Windows Subsystem for Linux](https://docs.microsoft.com/windows/wsl/about#what-is-wsl-2) to run Bash.
 
 1. Ensure [OpenSSL is installed](https://github.com/openssl/openssl#download) in order to generate self-signed certs used in this implementation.
-1. [Docker](https://docs.docker.com/)
-
-   > :bulb: in linux systems, it is possible to run the docker command without prefacing with sudo. For more information, please refer to [the Post-installation steps for linux](https://docs.docker.com/install/linux/linux-postinstall/)
-
 1. [JQ](https://stedolan.github.io/jq/download/)
 1. Helm 3
 

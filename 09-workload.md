@@ -54,14 +54,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the Delivery service
 
    ```bash
-   docker build --pull --compress -t $ACR_SERVER/delivery:0.1.0 ./src/shipping/delivery/.
-   ```
-
-   Push the image to ACR
-
-   ```bash
-   az acr login --name $ACR_NAME
-   docker push $ACR_SERVER/delivery:0.1.0
+   az acr build -r $ACR_NAME -t $ACR_SERVER/delivery:0.1.0 ./src/shipping/delivery/.
    ```
 
    Extract Azure resource details for the delivery app
@@ -110,14 +103,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the Ingestion service
 
    ```bash
-   docker build --pull --compress -t $ACR_SERVER/ingestion:0.1.0 ./src/shipping/ingestion/.
-   ```
-
-   Push the image to ACR
-
-   ```bash
-   az acr login --name $ACR_NAME
-   docker push $ACR_SERVER/ingestion:0.1.0
+   az acr build -r $ACR_NAME -t $ACR_SERVER/ingestion:0.1.0 ./src/shipping/ingestion/.
    ```
 
    Extract Azure resource details for the ingestion app
@@ -164,14 +150,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the Workflow service
 
    ```bash
-   docker build --pull --compress -t $ACR_SERVER/workflow:0.1.0 ./src/shipping/workflow/.
-   ```
-
-   Push the image to ACR
-
-   ```bash
-   az acr login --name $ACR_NAME
-   docker push $ACR_SERVER/workflow:0.1.0
+   az acr build -r $ACR_NAME -t $ACR_SERVER/workflow:0.1.0 ./src/shipping/workflow/.
    ```
 
    Extract Azure resource details for the workflow app
@@ -254,14 +233,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the DroneScheduler service
 
    ```bash
-   docker build -f ./src/shipping/dronescheduler/Dockerfile --pull --compress -t $ACR_SERVER/dronescheduler:0.1.0 ./src/shipping/.
-   ```
-
-   Push the image to ACR
-
-   ```bash
-   az acr login --name $ACR_NAME
-   docker push $ACR_SERVER/dronescheduler:0.1.0
+   az acr build -r $ACR_NAME -f ./src/shipping/dronescheduler/Dockerfile -t $ACR_SERVER/dronescheduler:0.1.0 ./src/shipping/.
    ```
 
    Extract Azure resource details for the dronescheduler app
@@ -307,14 +279,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the Package service
 
    ```bash
-   docker build --pull --compress -t $ACR_SERVER/package:0.1.0 ./src/shipping/package/.
-   ```
-
-   Push the image to ACR
-
-   ```bash
-   az acr login --name $ACR_NAME
-   docker push $ACR_SERVER/package:0.1.0
+   az acr build -r $ACR_NAME -t $ACR_SERVER/package:0.1.0 ./src/shipping/package/.
    ```
 
    Extract Azure resource details for the package app
