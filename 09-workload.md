@@ -156,7 +156,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the workflow app
 
    ```bash
-   export WORKFLOW_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.workflowPrincipalResourceId.value -o tsv) && \
+   export WORKFLOW_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.workflowPrincipalResourceId.value -o tsv)
    export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $WORKFLOW_ID_NAME --query clientId -o tsv)
    export WORKFLOW_KEYVAULT_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.workflowKeyVaultName.value -o tsv)
    ```
