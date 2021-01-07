@@ -64,7 +64,7 @@ Now that the [hub-spoke network is provisioned](./04-networking.md), the next st
 
    Use the following deploy to Azure button to create the baseline cluster from the Azure Portal. You'll need to provide the parameter values as returned from prior steps in this guide.
 
-   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmspnp%2Faks-secure-baseline%2Fmain%2Fcluster-stamp.json)
+   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmspnp%2Faks-fabrikam-dronedelivery%2Fmain%2Fcluster-stamp.json)
 
     **Option 2 - Deploy from the command line**
 
