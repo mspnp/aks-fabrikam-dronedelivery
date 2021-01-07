@@ -27,8 +27,8 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    :book: The Fabrikan Drone Delivery application follow the zero trust principle when establishing network connections between containers. Initially any container is allowed to establish a connection against another one. The following information is required to create ALLOW Network Policies.
 
    ```bash
-   CLUSTER_SUBNET_PREFIX="10.240.0.0/22"
-   GATEWAY_SUBNET_PREFIX="10.240.4.16/28"
+   EXPORT CLUSTER_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterSubnetPrefix.value -o tsv)
+   EXPORT GATEWAY_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.gatewaySubnetPrefix.value -o tsv)
    ```
 
 1. Get the Azure Application Insights settings

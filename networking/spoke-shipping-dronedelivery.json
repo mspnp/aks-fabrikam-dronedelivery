@@ -41,7 +41,10 @@
         "hubNetworkName": "[split(parameters('hubVnetResourceId'),'/')[8]]",
 
         "acrPrivateDnsZonesName": "privatelink.azurecr.io",
-        "akvPrivateDnsZonesName": "privatelink.vaultcore.azure.net"
+        "akvPrivateDnsZonesName": "privatelink.vaultcore.azure.net",
+
+        "clusterSubnetPrefix": "10.240.0.0/22",
+        "gatewaySubnetPrefix": "10.240.4.16/28"
     },
     "resources": [
         {
@@ -80,7 +83,7 @@
                     {
                         "name": "snet-clusternodes",
                         "properties": {
-                            "addressPrefix": "10.240.0.0/22",
+                            "addressPrefix": "[variables('clusterSubnetPrefix')]",
                             "serviceEndpoints": [
                             ],
                             "routeTable": {
@@ -99,7 +102,7 @@
                     {
                         "name": "snet-applicationgateways",
                         "properties": {
-                            "addressPrefix": "10.240.4.16/28"
+                            "addressPrefix": "[variables('gatewaySubnetPrefix')]"
                         }
                     }
                 ],
@@ -250,6 +253,14 @@
         },
         "appGwPublicIpAddress": {
             "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', concat('pip-', variables('orgAppId'), '-00'))).ipAddress]",
+            "type": "string"
+        },
+        "clusterSubnetPrefix": {
+            "value": "[variables('clusterSubnetPrefix')]",
+            "type": "string"
+        },
+        "gatewaySubnetPrefix": {
+            "value": "[variables('gatewaySubnetPrefix')]",
             "type": "string"
         }
     }
