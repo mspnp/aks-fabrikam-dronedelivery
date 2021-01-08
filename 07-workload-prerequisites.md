@@ -81,6 +81,8 @@ The AKS Cluster has been enrolled in [GitOps management](./06-gitops.md), wrappi
    dev    23s   pods: 5/5, requests.cpu: 765m/1, requests.memory: 1412Mi/2Gi   limits.cpu: 1280m/2, limits.memory: 1792Mi/5G
    ```
 
+> :bulb: The resource quota is tied to the app, and what is considered acceptable performance for your solution as well as the agent node sku, costs and so on. Therefore, the app performance team is the one in charge to determine how much it should be reserved per namespace.  Sometimes in a production cluster or special namespaces it is possible to consider the idea of going unbounded, so it can take all remaning resources if needed.
+
 ### Next step
 
 :arrow_forward: [Configure AKS Ingress Controller with Azure Key Vault integration](./08-secret-managment-and-ingress-controller.md)
