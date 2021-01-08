@@ -73,7 +73,7 @@ You can send delivery requests and check their statuses.
     }'
    ```
 
-1. Wait for a couple minutes for log entries to propagate, and then navigate to your Application Insights Azure service instance in the `rg-enterprise-networking-spokes` resource group. Then select `Application Map` under
+1. Wait for a couple minutes for log entries to propagate, and then navigate to your Application Insights Azure service instance in the `rg-enterprise-networking-spokes` resource group. Then select `Application Map` under the `Investigate` section.
 
    A similar dependency map like the one below should be displayed
 
@@ -81,7 +81,7 @@ You can send delivery requests and check their statuses.
 
 ## Validate the Horizontal Pod Autoscaling configuration
 
-   > :book: The app team wants to be sure that at every moment in the AKS cluster lifecycle the Fabrikam Drone Delivery applications are going to be using its resources appropiately. It means that under some load or special seasonal peaks the application can scale out by adding more pods, so it is able to respond accordinly without causing bottlenecks as well as scale down if it is detected that the resources are being underutilized. This is why the app team implemented Horizontal Pod Autoscaling (HPA) for all their microservices.
+   > :book: The app team wants to be sure that at every moment in the AKS cluster lifecycle the Fabrikam Drone Delivery applications are going to be using its resources appropiately. It means that under some load or special seasonal spikes in traffic, the application can scale out by adding more pods, so it is able to respond accordinly without causing bottlenecks as well as scale down if it is detected that the resources are being underutilized. This is why the app team implemented Horizontal Pod Autoscaling (HPA) for all their microservices.
 
    > Note: the application is currently being deployed in `dev` mode in which autoscaling capabilites are disabled by default. Please deploy the apps by passing `--set autoscaling.enabled=true` to configure HPA resources in your AKS cluster.
 
