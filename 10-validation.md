@@ -18,7 +18,7 @@ You can send delivery requests and check their statuses.
    export APPGW_PUBLIC_IP=$(az deployment group show --resource-group rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.appGwPublicIpAddress.value -o tsv)
    ```
 
-1. Send a request to <https://dronedelivery.fabrikam.com>.
+1. Send a request to https://dronedelivery.fabrikam.com
 
    > :bulb: Since the certificate used for TLS is self-signed, the request disables TLS validation using the '-k' option.
 
