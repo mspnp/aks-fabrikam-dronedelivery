@@ -4,7 +4,7 @@ This reference implementation shows a set of best practices for building and run
 
 To quickly understand how the AKS Fabrikam Drone Delivery expands the AKS Seucure Baseline, please refer to the following table:
 
-|                                         | [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline) | [AKS Fabrikam Drone Delivery](./) |
+|                                         | [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline) | AKS Fabrikam Drone Delivery |
 |-----------------------------------------|-------|----------|
 | Egress restriction using Azure Firewall |  ✅   |    ✅    |
 | Ingress Controller                      |  ✅   |    ✅    |
