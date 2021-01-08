@@ -28,13 +28,19 @@ This is the starting point for the instructions on deploying the [AKS Secure Bas
    > :twisted_rightwards_arrows: If you have forked this reference implementation repo, you'll be able to customize some of the files and commands for a more personalized experience; also ensure references to repos mentioned are updated to use your own (e.g. the following `GITHUB_REPO`).
 
    ```bash
-   export GITHUB_REPO=https://github.com/mspnp/aks-secure-baseline.git
+   export GITHUB_REPO=https://github.com/mspnp/aks-fabrikam-dronedelivery.git
    git clone $GITHUB_REPO
    ```
 
    > :bulb: The steps shown here and elsewhere in the reference implementation use Bash shell commands. On Windows, you can use the [Windows Subsystem for Linux](https://docs.microsoft.com/windows/wsl/about#what-is-wsl-2) to run Bash.
 
 1. Ensure [OpenSSL is installed](https://github.com/openssl/openssl#download) in order to generate self-signed certs used in this implementation.
+1. [JQ](https://stedolan.github.io/jq/download/)
+1. Helm 3
+
+   ```bash
+   curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+   ```
 
 ### Next step
 

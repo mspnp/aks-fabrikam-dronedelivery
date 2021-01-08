@@ -171,10 +171,6 @@
                         "appGatewayControllerPrincipalResourceId": {
                             "value": "[concat(subscription().id, '/resourceGroups/',parameters('resourceGroupName'),'/providers/Microsoft.ManagedIdentity/userAssignedIdentities/',variables('environmentSettings')[parameters('environmentName')].appGatewayControllerIdName)]",
                             "type": "string"
-                        },
-                        "acrResourceGroupName": {
-                            "value": "[variables('environmentSettings')[parameters('environmentName')].acrResourceGroupName]",
-                            "type": "string"
                         }
                    }
                 }
@@ -182,8 +178,8 @@
         }
     ],
     "outputs": {
-        "identitiesDeploymentName": {
-            "value": "[variables('nestedIdDeploymentName')]",
+        "acrResourceGroupName": {
+            "value": "[variables('environmentSettings')[parameters('environmentName')].acrResourceGroupName]",
             "type": "string"
         }
     }

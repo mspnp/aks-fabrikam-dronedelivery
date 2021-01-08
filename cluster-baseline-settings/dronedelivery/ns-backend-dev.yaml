@@ -3,6 +3,11 @@
 #   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 #  ------------------------------------------------------------
 
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: backend-dev
+---
 apiVersion: v1
 kind: ResourceQuota
 metadata:

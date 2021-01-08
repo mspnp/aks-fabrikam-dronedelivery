@@ -10,21 +10,29 @@
 {{- $appversion := .Chart.AppVersion }}
 {{- $defaultversionedpath := printf "/%s/" $appversion }}
 {{- $relname := .Release.Name }}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $relname }}-ingress
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
+    kubernetes.io/ingress.allow-http: "false"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "appgw-ssl-certificate"
+    # TODO: modify delivery containers to start listening https instead (dont forget
+    # probes as they override the appgw probes cfg). Then uncomment the following
+    # annotations to have e2e TLS: https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1048
+    # appgw.ingress.kubernetes.io/ssl-redirect: "false"
+    # appgw.ingress.kubernetes.io/backend-protocol: "https"
+    # appgw.ingress.kubernetes.io/backend-hostname: "shipping.aks-agic.fabrikam.com"
+    # appgw.ingress.kubernetes.io/hostname-extension: "*.aks-agic.fabrikam.com"
+    # appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "root-cert-wildcard-aks-ingress-fabrikam"
 spec:
-  {{- if .Values.ingress.tls }}
   tls:
   {{- range .Values.ingress.hosts }}
-  {{- if .tls }}
   - hosts:
     - {{ .name }}
+  {{- if .tlsSecretName }}
     secretName: {{ $relname }}-{{ .tlsSecretName }}
-  {{- end }}
   {{- end }}
   {{- end }}
   rules:
@@ -34,16 +42,23 @@ spec:
       paths:
       {{- if .path }}
       - path: {{ printf "%s/%s/" .path $appversion }}api/deliveries*
+        pathType: Prefix
       {{- else }}
       - path: {{ $defaultversionedpath }}api/deliveries*
+        pathType: Prefix
       {{- end }}
         backend:
-          serviceName: "{{ .serviceName }}-{{ $svcversion }}"
-          servicePort: http
+          service:
+            name: "{{ .serviceName }}-{{ $svcversion }}"
+            port:
+              number: 80
       {{- if (eq $appversion "v0.1.0") }}
       - path: {{ default "/" .path }}api/deliveries*
+        pathType: Prefix
         backend:
-          serviceName: "{{ .serviceName }}"
-          servicePort: http
+          service:
+            name: "{{ .serviceName }}"
+            port:
+              number: 80
       {{- end }}
   {{ end }}

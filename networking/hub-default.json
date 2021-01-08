@@ -172,7 +172,7 @@
                             "priority": 100,
                             "rules": [
                                 {
-                                    "name": "DNS",
+                                    "name": "dns",
                                     "sourceAddresses": [
                                         "*"
                                     ],
@@ -197,22 +197,6 @@
                                     ],
                                     "destinationPorts": [
                                         "123"
-                                    ],
-                                    "destinationAddresses": [
-                                        "*"
-                                    ]
-                                },
-                                {
-                                    "name": "HTTP-and-HTTPS",
-                                    "sourceAddresses": [
-                                        "*"
-                                    ],
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "destinationPorts": [
-                                        "80",
-                                        "443"
                                     ],
                                     "destinationAddresses": [
                                         "*"
