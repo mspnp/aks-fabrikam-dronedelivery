@@ -49,7 +49,7 @@ You can send delivery requests and check their statuses.
 
 ## Validate the Distruted Tracing solution
 
-   > :book: The app team decided to use [Application Insights](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview) as their Application Performance Management (APM) tool. In a microservices architecture making use of this tooling is critical when monitoring the application to detect anomalies and easily diagnose issues as a well quickly understand the dependencies between services.  The AKS Fabrikam Drone Delivery Shipping Application is a poligloth solution using .NET Core, Node.js, and Java.  Application Insights, which is part of Azure Monitor is able to work with these languages and many others.  The app team also wanted to be sure that the telemetry being sent from the services were well contextualized in the Kuberentes world.  That's why they enriched the telemetry to incoporate image names, container information and more.
+   > :book: The app team decided to use [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) as their Application Performance Management (APM) tool. In a microservices architecture making use of this tooling is critical when monitoring the application to detect anomalies and easily diagnose issues as a well quickly understand the dependencies between services.  The AKS Fabrikam Drone Delivery Shipping Application is a polyglot solution using .NET Core, Node.js, and Java.  Application Insights, which is part of Azure Monitor, is able to work with these languages and many others.  The app team also wanted to be sure that the telemetry being sent from the services were well contextualized in the Kubernetes world.  That's why they enriched the telemetry to incorporate image names, container information, and more.
 
 ### Steps
 
@@ -69,11 +69,11 @@ You can send delivery requests and check their statuses.
         "weight": 10
       },
       "pickupLocation": "my pickup",
-      "pickupTime": "2019-05-08T20:00:00.000Z"
+      "pickupTime": "2020-12-08T20:00:00.000Z"
     }'
    ```
 
-1. Wait for a minute or just bit more, and then navigate to your Application Insights Azure service instance in the `rg-enterprise-networking-spokes` resource group. Then select `Application Map` under
+1. Wait for a couple minutes for log entries to propagate, and then navigate to your Application Insights Azure service instance in the `rg-enterprise-networking-spokes` resource group. Then select `Application Map` under
 
    A similar dependency map like the one below should be displayed
 

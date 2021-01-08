@@ -59,7 +59,7 @@ The AKS Cluster has been enrolled in [GitOps management](./06-gitops.md), wrappi
 
 ## Check that the workload namespace is enforcing resource quotas
 
-> :book: The app team wants to be sure that application operators are always reminded to reserve the resources requests and limits for the Fabrikam Drone Delivery Shipping Application in every microservice they need to deploy to the AKS cluster.  [A well known native Kubernetes best practice](https://docs.microsoft.com/en-us/azure/aks/operator-best-practices-scheduler#enforce-resource-quotas) to achieve this is to enforce Resource Quotas at the namespace level.  This beneificial in many aspects but more importantly, their clusters are not going run with unbounded resources, and it starts to depict the app team's strategy to implement Horizontal Pod Autoscaling in the future.
+> :book: The app team wants to be sure that application operators are always reminded to reserve the resources requests and limits for the Fabrikam Drone Delivery Shipping Application in every microservice they need to deploy to the AKS cluster.  [A well known native Kubernetes best practice](https://docs.microsoft.com/en-us/azure/aks/operator-best-practices-scheduler#enforce-resource-quotas) to achieve this is to enforce Resource Quotas at the namespace level.  This is beneficial in many aspects but more importantly, their clusters are not going run with unbounded resources, and it starts to depict the app team's strategy to implement Horizontal Pod Autoscaling in the future.
 
 1. Ensure Flux has created the following namespace
 
