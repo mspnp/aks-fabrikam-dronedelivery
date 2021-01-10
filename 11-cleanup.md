@@ -12,6 +12,7 @@ After you are done exploring your deployed [AKS secure baseline cluster](./), yo
 
    ```bash
    az group delete -n rg-shipping-dronedelivery
+   az group delete -n rg-shipping-dronedelivery-acr
    az group delete -n rg-enterprise-networking-spokes
    az group delete -n rg-enterprise-networking-hubs
    ```
