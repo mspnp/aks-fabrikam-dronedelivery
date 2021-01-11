@@ -27,7 +27,7 @@ Now that you have the [prerequisites](./01-prerequisites.md) met, follow the ste
 
 1. Generate the wildcard certificate for the AKS Ingress Controller
 
-   > :book: Fabrikam Drone Delivery  will also procure another TLS certificate, a standard cert, to be used with the AKS Ingress Controller. This one is not EV, as it will not be user facing. Finally the app team decides to use a wildcard certificate of `*.aks-ingress.fabrikam.com` for the ingress controller.
+   > :book: Fabrikam Drone Delivery will also procure another TLS certificate, a standard cert, to be used with the AKS Ingress Controller. This one is not EV, as it will not be user facing. Finally the app team decides to use a wildcard certificate of `*.aks-agic.fabrikam.com` for the ingress controller.
 
    ```bash
    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out k8sic.crt -keyout k8sic.key -subj "/CN=*.aks-agic.fabrikam.com/O=Fabrikam Aks Ingress"

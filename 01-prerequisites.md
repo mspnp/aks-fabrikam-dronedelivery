@@ -36,7 +36,7 @@ This is the starting point for the instructions on deploying the [AKS Secure Bas
 
 1. Ensure [OpenSSL is installed](https://github.com/openssl/openssl#download) in order to generate self-signed certs used in this implementation.
 1. [JQ](https://stedolan.github.io/jq/download/)
-1. Helm 3
+1. [Helm 3](https://helm.sh)
 
    ```bash
    curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash

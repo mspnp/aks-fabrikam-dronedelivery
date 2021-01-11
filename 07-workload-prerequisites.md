@@ -57,6 +57,32 @@ The AKS Cluster has been enrolled in [GitOps management](./06-gitops.md), wrappi
    k8sazurevolumetypes                      21m
    ```
 
+## Check that the workload namespace is enforcing resource quotas
+
+> :book: The app team wants to be sure that application operators are always reminded to reserve the resources requests and limits for the Fabrikam Drone Delivery Shipping Application in every microservice they need to deploy to the AKS cluster.  [A well known native Kubernetes best practice](https://docs.microsoft.com/en-us/azure/aks/operator-best-practices-scheduler#enforce-resource-quotas) to achieve this is to enforce Resource Quotas at the namespace level.  This is beneficial in many aspects but more importantly, their clusters are not going run with unbounded resources, and it starts to depict the app team's strategy to implement Horizontal Pod Autoscaling in the future.
+
+1. Ensure Flux has created the following namespace
+
+   ```bash
+   # press Ctrl-C once you receive a successful response
+   kubectl get ns backend-dev -w
+   ```
+
+1. Check the `backend-dev` resource quota are enforced
+
+   ```bash
+    kubectl get resourcequota -n backend-dev
+   ```
+
+   A similar output as the one showed below should be returned
+
+   ```output
+   NAME   AGE   REQUEST                                                        LIMIT
+   dev    23s   pods: 5/5, requests.cpu: 765m/1, requests.memory: 1412Mi/2Gi   limits.cpu: 1280m/2, limits.memory: 1792Mi/5G
+   ```
+
+> :bulb: The resource quota is tied to the app, and what is considered acceptable performance for your solution as well as the agent node sku, costs and so on. Therefore, the app performance team is the one in charge to determine how much it should be reserved per namespace.  Sometimes in a production cluster or special namespaces it is possible to consider the idea of going unbounded, so it can take all remaning resources if needed.
+
 ### Next step
 
 :arrow_forward: [Configure AKS Ingress Controller with Azure Key Vault integration](./08-secret-managment-and-ingress-controller.md)
