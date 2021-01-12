@@ -28,8 +28,8 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    :book: The Fabrikan Drone Delivery application follow the zero trust principle when establishing network connections between containers. Initially any container is allowed to establish a connection against another one. The following information is required to create ALLOW Network Policies.
 
    ```bash
-   EXPORT CLUSTER_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterSubnetPrefix.value -o tsv)
-   EXPORT GATEWAY_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.gatewaySubnetPrefix.value -o tsv)
+   export CLUSTER_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterSubnetPrefix.value -o tsv)
+   export GATEWAY_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.gatewaySubnetPrefix.value -o tsv)
    ```
 
 1. Get the Azure Application Insights settings
@@ -48,6 +48,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 
    ```bash
    az acr update --name $ACR_NAME --public-network-enabled true
+   az acr update --name $ACR_NAME --set networkRuleSet.defaultAction="Allow"
    ```
 
 1. Deploy the Delivery service app
@@ -97,7 +98,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=delivery-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=delivery-v0.1.0-dev --timeout=90s
    ```
 1. Deploy the Ingestion service app
 
@@ -143,7 +144,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=ingestion-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=ingestion-v0.1.0-dev --timeout=90s
    ```
 
 1. Deploy the Workflow service app
@@ -226,7 +227,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=workflow-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=workflow-v0.1.0-dev --timeout=90s
    ```
 
 1. Deploy the DroneScheduler service app
@@ -272,7 +273,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=dronescheduler-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=dronescheduler-v0.1.0-dev --timeout=90s
    ```
 
 1. Deploy the Package service app
@@ -313,14 +314,17 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=package-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=package-v0.1.0-dev --timeout=90s
    ```
 
 1. Disable the public access to your ACR temporary
 
    ```bash
+   az acr update --name $ACR_NAME --set networkRuleSet.defaultAction="Deny"
    az acr update --name $ACR_NAME --public-network-enabled false
    ```
+
+> :book: The app team just finished the installation of the Fabrikam Drone Delivery Shipping app, and it is now operative and ready for their clients to start sending http requests.
 
 ### Next step
 
