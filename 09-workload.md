@@ -4,7 +4,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 
 ## Steps
 
-> :book: The Fabrikam Drone Delivery app team is about to conclude this journey, but they need an app to test their new infrastructure. For this task they've picked out the formerly known [Microservices Reference Implementation](https://github.com/mspnp/microservices-reference-implementation). From now on, the Fabrikam Drone Delivery Shipping application is a sample application that consists of several microservices. Because it's a sample, the functionality is simulated, but the APIs and microservices interactions are intended to reflect real-world design patterns.
+> :book: The Fabrikam Drone Delivery app team is now ready to install the workloads in their new AKS cluster.  This workloads are the Fabrikam Drone Delivery Shipping application is an solution that consists of several microservices. Because it's a sample, the functionality is simulated, but the APIs and microservices interactions are intended to reflect real-world design patterns.
 >
 >  - Ingestion service. Receives client requests and buffers them.
 >  - Workflow service. Dispatches client requests and manages the delivery workflow.
@@ -12,7 +12,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 >  - Package service. Manages packages.
 >  - Drone service. Schedules drones and monitors drones in flight.
 >
-> The Fabrikam Drone Delivery app team is about to deploy all the microservices into the AKS cluster. They all are going to be deployed in the same way; it will require to build their Docker images, collect values like Azure service names or any other kind of information, and deploy using Helm.
+> The Fabrikam Drone Delivery app team is about to deploy all the microservices into the AKS cluster. They all are going to be deployed in the same way; it will require to build their Docker images, collect values like Azure service names or any other kind of information, and ultimately deploy using Helm.
 
 ![Fabrikam Drone Delivery Shipping Application architecture diagram including the messaging flow from Ingestion microservice to Workflow microservice and then from Workflow to Package, Drone Scheduler and Delivery microservices](./imgs/architecture.png)
 
