@@ -60,13 +60,7 @@ Now that the [hub-spoke network is provisioned](./04-networking.md), the next st
 1. Deploy the cluster ARM template.
   :exclamation: By default, this deployment will allow unrestricted access to your cluster's API Server.  You can limit access to the API Server to a set of well-known IP addresses (i.,e. your hub firewall IP, bastion subnet, build agents, or any other networks you'll administer the cluster from) by setting the `clusterAuthorizedIPRanges` parameter in all deployment options.
 
-   **Option 1 - Deploy in the Azure Portal**
-
-   Use the following deploy to Azure button to create the baseline cluster from the Azure Portal. You'll need to provide the parameter values as returned from prior steps in this guide.
-
-   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmspnp%2Faks-fabrikam-dronedelivery%2Fmain%2Fcluster-stamp.json)
-
-    **Option 2 - Deploy from the command line**
+    **Option 1 - Deploy from the command line**
 
    ```bash
    # [This takes about 15 minutes.]
@@ -75,7 +69,7 @@ Now that the [hub-spoke network is provisioned](./04-networking.md), the next st
 
    > Alteratively, you could have updated the [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file and deployed as above, using `--parameters "@azuredeploy.parameters.prod.json"` instead of the individual key-value pairs.
 
-    **Option 3 - Automated deploy using GitHub Actions (fork is required)**
+    **Option 2 - Automated deploy using GitHub Actions (fork is required)**
 
     1. Create the Azure Credentials for the GitHub CD workflow.
 
