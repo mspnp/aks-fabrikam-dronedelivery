@@ -4,7 +4,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 
 ## Steps
 
-> :book: The Fabrikam Drone Delivery app team is about to conclude this journey, but they need an app to test their new infrastructure. For this task they've picked out the formerly known [Microservices Reference Implementation](https://github.com/mspnp/microservices-reference-implementation). From now on, the Fabrikam Drone Delivery Shipping application is a sample application that consists of several microservices. Because it's a sample, the functionality is simulated, but the APIs and microservices interactions are intended to reflect real-world design patterns.
+> :book: The Fabrikam Drone Delivery app team is now ready to install the workloads in their new AKS cluster.  This workloads are the Fabrikam Drone Delivery Shipping application is an solution that consists of several microservices. Because it's a sample, the functionality is simulated, but the APIs and microservices interactions are intended to reflect real-world design patterns.
 >
 >  - Ingestion service. Receives client requests and buffers them.
 >  - Workflow service. Dispatches client requests and manages the delivery workflow.
@@ -12,7 +12,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 >  - Package service. Manages packages.
 >  - Drone service. Schedules drones and monitors drones in flight.
 >
-> The Fabrikam Drone Delivery app team is about to deploy all the microservices into the AKS cluster. They all are going to be deployed in the same way; it will require to build their Docker images, collect values like Azure service names or any other kind of information, and deploy using Helm.
+> The Fabrikam Drone Delivery app team is about to deploy all the microservices into the AKS cluster. They all are going to be deployed in the same way; it will require to build their Docker images, collect values like Azure service names or any other kind of information, and ultimately deploy using Helm.
 
 ![Fabrikam Drone Delivery Shipping Application architecture diagram including the messaging flow from Ingestion microservice to Workflow microservice and then from Workflow to Package, Drone Scheduler and Delivery microservices](./imgs/architecture.png)
 
@@ -28,14 +28,14 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    :book: The Fabrikan Drone Delivery application follow the zero trust principle when establishing network connections between containers. Initially any container is allowed to establish a connection against another one. The following information is required to create ALLOW Network Policies.
 
    ```bash
-   EXPORT CLUSTER_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterSubnetPrefix.value -o tsv)
-   EXPORT GATEWAY_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.gatewaySubnetPrefix.value -o tsv)
+   export CLUSTER_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterSubnetPrefix.value -o tsv)
+   export GATEWAY_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.gatewaySubnetPrefix.value -o tsv)
    ```
 
 1. Get the Azure Application Insights settings
 
    ```bash
-   export AI_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.appInsightsName.value -o tsv)
+   export AI_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.appInsightsName.value -o tsv)
    export AI_IKEY=$(az resource show -g rg-shipping-dronedelivery -n $AI_NAME --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv)
    ```
 
@@ -48,6 +48,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 
    ```bash
    az acr update --name $ACR_NAME --public-network-enabled true
+   az acr update --name $ACR_NAME --set networkRuleSet.defaultAction="Allow"
    ```
 
 1. Deploy the Delivery service app
@@ -61,12 +62,12 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the delivery app
 
    ```bash
-   DELIVERY_ID_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.deliveryIdName.value -o tsv)
-   DELIVERY_KEYVAULT_URI=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryKeyVaultUri.value -o tsv)
-   DELIVERY_COSMOSDB_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryCosmosDbName.value -o tsv)
+   DELIVERY_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.deliveryIdName.value -o tsv)
+   DELIVERY_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryKeyVaultUri.value -o tsv)
+   DELIVERY_COSMOSDB_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryCosmosDbName.value -o tsv)
    DELIVERY_DATABASE_NAME="${DELIVERY_COSMOSDB_NAME}-db"
    DELIVERY_COLLECTION_NAME="${DELIVERY_COSMOSDB_NAME}-col"
-   DELIVERY_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.deliveryPrincipalResourceId.value -o tsv)
+   DELIVERY_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.deliveryPrincipalResourceId.value -o tsv)
    DELIVERY_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DELIVERY_ID_NAME --query clientId -o tsv)
    ```
 
@@ -97,7 +98,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=delivery-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=delivery-v0.1.0-dev --timeout=90s
    ```
 1. Deploy the Ingestion service app
 
@@ -110,9 +111,9 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the ingestion app
 
    ```bash
-   export INGESTION_QUEUE_NAMESPACE=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionQueueNamespace.value -o tsv)
-   export INGESTION_QUEUE_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionQueueName.value -o tsv)
-   export INGESTION_ACCESS_KEY_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionServiceAccessKeyName.value -o tsv)
+   export INGESTION_QUEUE_NAMESPACE=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionQueueNamespace.value -o tsv)
+   export INGESTION_QUEUE_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionQueueName.value -o tsv)
+   export INGESTION_ACCESS_KEY_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionServiceAccessKeyName.value -o tsv)
    export INGESTION_ACCESS_KEY_VALUE=$(az servicebus namespace authorization-rule keys list --resource-group rg-shipping-dronedelivery --namespace-name $INGESTION_QUEUE_NAMESPACE --name $INGESTION_ACCESS_KEY_NAME --query primaryKey -o tsv)
    ```
 
@@ -143,7 +144,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=ingestion-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=ingestion-v0.1.0-dev --timeout=90s
    ```
 
 1. Deploy the Workflow service app
@@ -157,9 +158,9 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the workflow app
 
    ```bash
-   export WORKFLOW_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.workflowPrincipalResourceId.value -o tsv)
+   export WORKFLOW_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.workflowPrincipalResourceId.value -o tsv)
    export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $WORKFLOW_ID_NAME --query clientId -o tsv)
-   export WORKFLOW_KEYVAULT_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.workflowKeyVaultName.value -o tsv)
+   export WORKFLOW_KEYVAULT_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.workflowKeyVaultName.value -o tsv)
    ```
 
    Create the Workflows's Secret Provider Class resource
@@ -226,7 +227,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=workflow-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=workflow-v0.1.0-dev --timeout=90s
    ```
 
 1. Deploy the DroneScheduler service app
@@ -240,13 +241,13 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the dronescheduler app
 
    ```bash
-   export DRONESCHEDULER_KEYVAULT_URI=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
-   export DRONESCHEDULER_COSMOSDB_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
+   export DRONESCHEDULER_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
+   export DRONESCHEDULER_COSMOSDB_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
    export DRONESCHEDULER_DATABASE_NAME="invoicing"
    export DRONESCHEDULER_COLLECTION_NAME="utilization"
-   export DRONESCHEDULER_PRINCIPAL_RESOURCE_ID=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.droneSchedulerPrincipalResourceId.value -o tsv) && \
+   export DRONESCHEDULER_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.droneSchedulerPrincipalResourceId.value -o tsv) && \
    export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DRONESCHEDULER_ID_NAME --query clientId -o tsv)
-   export DRONESCHEDULER_KEYVAULT_URI=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
+   export DRONESCHEDULER_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
    ```
 
    Deploy the DroneScheduler service
@@ -272,7 +273,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=dronescheduler-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=dronescheduler-v0.1.0-dev --timeout=90s
    ```
 
 1. Deploy the Package service app
@@ -286,7 +287,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the package app
 
    ```bash
-   export PACKAGE_DATABASE_NAME=$(az group deployment show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.packageMongoDbName.value -o tsv)
+   export PACKAGE_DATABASE_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.packageMongoDbName.value -o tsv)
    export PACKAGE_CONNECTION=$(az cosmosdb list-connection-strings --name $PACKAGE_DATABASE_NAME --resource-group rg-shipping-dronedelivery --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
    export PACKAGE_COLLECTION_NAME=packages
    export PACKAGE_INGRESS_TLS_SECRET_NAME=package-ingress-tls
@@ -313,14 +314,17 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Verify the pod is created
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/name=package-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=package-v0.1.0-dev --timeout=90s
    ```
 
 1. Disable the public access to your ACR temporary
 
    ```bash
+   az acr update --name $ACR_NAME --set networkRuleSet.defaultAction="Deny"
    az acr update --name $ACR_NAME --public-network-enabled false
    ```
+
+> :book: The app team just finished the installation of the Fabrikam Drone Delivery Shipping app, and it is now operative and ready for their clients to start sending http requests.
 
 ### Next step
 

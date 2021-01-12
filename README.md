@@ -1,4 +1,4 @@
-# Azure Kubernetes Service (AKS) Fabrikam Drone Delivery (Motorcycle)
+# Azure Kubernetes Service (AKS) Fabrikam Drone Delivery
 
 This reference implementation shows a set of best practices for building and running a microservices architecture on Microsoft Azure, on top of the [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline), which is the the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service).
 
