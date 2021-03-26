@@ -101,7 +101,7 @@ You can send delivery requests and check their statuses.
 
 ##  Further validate by following extra steps from the AKS Secure Baseline. _Optional_.
 
-Navigate to [the AKS Secure Baseline to validate the Firewall, Azure Monitor Inisghts, and
+Navigate to [the AKS Secure Baseline to validate the Firewall, Azure Monitor Insights, and
 more.](https://github.com/mspnp/aks-secure-baseline/blob/aeed3c9036d440979c4baa93f5b43a7c3e6d5375/10-validation.md#validate-web-application-firewall-functionality)
 
 ## Next step
