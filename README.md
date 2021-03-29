@@ -1,8 +1,8 @@
 # Azure Kubernetes Service (AKS) Fabrikam Drone Delivery
 
-This reference implementation shows a set of best practices for building and running a microservices architecture on Microsoft Azure, on top of the [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline), which is the the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service).
+This reference implementation shows a set of best practices for building and running a microservices architecture on Microsoft Azure. This content is built on top of the [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline), which is the _recommended starting (baseline) infrastructure architecture_ for an [AKS cluster](https://azure.microsoft.com/services/kubernetes-service).
 
-To quickly understand how the AKS Fabrikam Drone Delivery expands the AKS Seucure Baseline, please refer to the following table:
+To quickly understand how the AKS Fabrikam Drone Delivery expands the AKS Secure Baseline, please refer to the following table:
 
 |                                         | [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline) | AKS Fabrikam Drone Delivery |
 |-----------------------------------------|-------|----------|
@@ -18,7 +18,7 @@ To quickly understand how the AKS Fabrikam Drone Delivery expands the AKS Seucur
 | Helm charts                             |  ❌   |    ✅    |
 | Distributed Monitoring                  |  ❌   |    ✅    |
 
-**AKS Fabrikam Drone Delivery is not just workload focused**, but also incoporates the infrastructure journey by expanding the [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline). Similarly to what organizations might get into while trying to implement their own solutions by using as reference the AKS Secure Baseline, this reference implementation will carefully modify or simply interchange small pieces that could be the preference like using a different kind of Ingress Controller or deploying a different workload on top of. If you or your team are in day 0 or looking for infrastructure related aspects only, the recommendation is to start with the [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline). If you want a more comprenhensive guidance to the point of deploying a more *interesting* workload this is right guidance to follow.
+**AKS Fabrikam Drone Delivery is not just workload focused**, but also incorporates the infrastructure journey by expanding the [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline). Similar to what organizations might get into while trying to implement their solutions based on the AKS Secure Baseline, this reference implementation carefully modifies or interchanges small pieces like using a different kind of ingress controller or deploying a different workload on top of the cluster. If you or your team are on day 0 or looking for infrastructure-related aspects only, the recommendation is to start with the [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline). If you want more comprehensive guidance for deploying a more *interesting* workload, this is the proper guidance to follow.
 
 ## Azure Architecture Center guidance
 
@@ -30,11 +30,11 @@ This project has a companion set of articles that describe challenges, design pa
 
 ## Architecture
 
-This architecture integrates whith a maryad of Azure services to show case a worklod with distributed tracing, messaging and storage. But also it implements recommended native Kubernetes features such as auto scaling capabilities, probes, network policies as well as other standars like Helm charts and more. As a result of expanding the AKS Secure Basline, this architecture should be also considered your starting point for pre-production and production stages.
+This architecture integrates with many Azure services to demonstrate workload with distributed tracing, messaging, and storage. This architecture also implements recommended native Kubernetes features such as auto-scaling capabilities, probes, network policies, and other standards like Helm charts and more. As a result of expanding the AKS Secure Baseline, this architecture should also be considered your starting point for pre-production and production stages.
 
-An important distintion of this architecture is that implements the [Azure Application Gateway Ingress Controller](https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview) instead of using [Traefik](https://doc.traefik.io/traefik/v1.7/user-guide/kubernetes/) as in the baseline.
+An important distinction of this architecture is that it implements the [Azure Application Gateway Ingress Controller](https://docs.microsoft.com/azure/application-gateway/ingress-controller-overview) instead of using [Traefik](https://doc.traefik.io/traefik/v1.7/user-guide/kubernetes/) as in the baseline.
 
-Throughout the reference implementation, you will see reference to _Fabrikam Drone Delivery Shipping App_. Fabrikam, Inc. (a fictional company) is starting a drone delivery service and made the architectural decision of implementing its solution on top of the AKS Secure Baseline since it covers all the infrastructure aspects they are requested to operate. The company manages a fleet of drone aircraft. Businesses register with the service, and users can request a drone to pick up goods for delivery. When a customer schedules a pickup, a backend system assigns a drone and notifies the user with an estimated delivery time. While the delivery is in progress, the customer can track the location of the drone, with a continuously updated ETA.
+Throughout the reference implementation, you will see reference to _Fabrikam Drone Delivery Shipping App_. Fabrikam, Inc. (a fictional company) is starting a drone delivery service and has made the architectural decision of implementing its solution on top of the AKS Secure Baseline since it covers all the infrastructure aspects they are requested to operate. The company manages a fleet of drone aircraft. Businesses register with the service, and users can request a drone to pick up goods for delivery. When a customer schedules a pickup, a backend system assigns a drone and notifies the user with an estimated delivery time. While the delivery is in progress, the customer can track the drone's location with a continuously updated ETA.
 
 ### Core architecture components
 
@@ -67,7 +67,7 @@ Throughout the reference implementation, you will see reference to _Fabrikam Dro
 
 ## Deploy the reference implementation
 
-For the sake of simplicity in here it is just listed the required sections to follow to deploy the AKS Fabrikam Drone Delivery. But if you look for extra details on the different infrastructure related aspects, please take a look at the to the [AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline).
+Here are the required sections to follow for deploying the AKS Fabrikam Drone Delivery reference implementation.
 
 * [ ] [Install and meet the prerequisites](./01-prerequisites.md)
 * [ ] [Procure client-facing and AKS Ingress Controller TLS certificates](./02-ca-certificates.md)
@@ -81,13 +81,6 @@ For the sake of simplicity in here it is just listed the required sections to fo
 * [ ] [Perform end-to-end deployment validation](./10-validation.md)
 * [ ] [Cleanup all resources](./11-cleanup.md)
 
-# Preview features
-
-While this reference implementation tends to avoid _preview_ features of AKS to ensure you have the best customer support experience; there are some features you may wish to evaluate in pre-production clusters that augment your posture around security, manageability, etc. Consider trying out and providing feedback on the following. As these features come out of preview, this reference implementation may be updated to incorporate them.
-
-* [Preview features coming from the AKS Secure Baseline](https://github.com/mspnp/aks-secure-baseline#preview-features)
-* _Currently the AKS Fabrikam Drone Delivery does not implement any Preview feature directly_
-
 ## Next Steps
 
 This reference implementation intentionally does not cover all scenarios. If you are looking for other topics that are not addressed here, please visit [AKS Secure Baseline for the complete list of covered scenarios around AKS](https://github.com/mspnp/aks-secure-baseline#advanced-topics).
@@ -96,6 +89,6 @@ This reference implementation intentionally does not cover all scenarios. If you
 
 Please see our [contributor guide](./CONTRIBUTING.md).
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact <opencode@microsoft.com> with any additional questions or comments.
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact <opencode@microsoft.com> with any additional questions or comments.
 
 With :heart: from Microsoft Patterns & Practices, [Azure Architecture Center](https://aka.ms/architecture).

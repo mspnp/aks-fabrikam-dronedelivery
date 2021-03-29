@@ -4,28 +4,25 @@ After you are done exploring your deployed [AKS secure baseline cluster](./), yo
 
 ## Steps
 
-1. Delete the resource groups as a way to delete all contained Azure resources.
-
-   > To delete all Azure resources associated with this reference implementation, you'll need to delete the three resource groups created.
+1. Delete the resource groups, which will delete all related Azure resources.
 
    :warning: Ensure you are using the correct subscription, and validate that the only resources that exist in these groups are ones you're okay deleting.
-
    ```bash
-   az group delete -n rg-shipping-dronedelivery
-   az group delete -n rg-shipping-dronedelivery-acr
-   az group delete -n rg-enterprise-networking-spokes
-   az group delete -n rg-enterprise-networking-hubs
+   az group delete -n rg-shipping-dronedelivery --no-wait
+   az group delete -n rg-shipping-dronedelivery-acr --no-wait
+   az group delete -n rg-enterprise-networking-spokes --no-wait
+   az group delete -n rg-enterprise-networking-hubs --no-wait
    ```
 
 1. Purge Azure Key Vault
 
-   > Because this reference implementation enables soft delete on Key Vault, execute a purge so your next deployment of this implementation doesn't run into a naming conflict.
+   > Because this reference implementation enables soft delete on Key Vault, execute a purge, so your next deployment of this implementation doesn't run into a naming conflict.
 
    ```bash
    az keyvault purge --name ${KEYVAULT_NAME} --location eastus2
    ```
 
-1. If any temporary changes were made to Azure AD or Azure RBAC permissions consider removing those as well.
+1. If any temporary changes were made to Azure AD or Azure RBAC permissions, consider removing those as well.
 
 1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name] `.
 

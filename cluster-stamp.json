@@ -94,19 +94,13 @@
             }
         },
         "kubernetesVersion": {
-            "defaultValue": "1.19.3",
+            "defaultValue": "1.19.6",
             "type": "string"
         },
         "acrResourceGroupName": {
             "type": "string",
             "metadata": {
                 "description": "the resource group name of the Azure Continer Registry"
-            }
-        },
-        "acrResourceGroupLocation": {
-            "type": "string",
-            "metadata": {
-                "description": "the resource group location of the Azure Continer Registry"
             }
         },
         "deliveryIdName": {
@@ -229,7 +223,7 @@
             "properties": {
                 "mode": "Incremental",
                 "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
                     "resources": [
                         {
