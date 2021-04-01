@@ -1,65 +1,62 @@
  # Deploy Workload (Fabrikam Drone Delivery Shipping app)
 
-The cluster now has an [Azure Application Gateway Ingress Controller configured with a SSL certificate pre-installed integrated with Azure Key Vault](./08-secret-managment-and-ingress-controller.md). The last step in the process is to deploy the  Fabrikam Drone Delivery app, which will demonstrate the system's functions.
+The cluster now has an [Azure Application Gateway Ingress Controller configured with a SSL certificate and integrated with Azure Key Vault](./08-secret-managment-and-ingress-controller.md). The last step in the process is to deploy the  Fabrikam Drone Delivery app, which will demonstrate the system's functions.
 
 ## Steps
 
-> :book: The Fabrikam Drone Delivery app team is now ready to install the workloads in their new AKS cluster.  This workloads are the Fabrikam Drone Delivery Shipping application is an solution that consists of several microservices. Because it's a sample, the functionality is simulated, but the APIs and microservices interactions are intended to reflect real-world design patterns.
+> :book: The Fabrikam Drone Delivery app team is now ready to install the application in their new AKS cluster.  The Fabrikam Drone Delivery Shipping application is consists of several microservices. Because it's a sample, the functionality is simulated however, the APIs and microservices interactions are intended to reflect real-world design patterns.
 >
->  - Ingestion service. Receives client requests and buffers them.
->  - Workflow service. Dispatches client requests and manages the delivery workflow.
->  - Delivery service. Manages deliveries that are scheduled or in-transit.
->  - Package service. Manages packages.
->  - Drone service. Schedules drones and monitors drones in flight.
+>  - Ingestion service: receives client requests and buffers them.
+>  - Workflow service: dispatches client requests and manages the delivery workflow.
+>  - Delivery service: manages deliveries that are scheduled or in-transit.
+>  - Package service: manages packages.
+>  - Drone service: schedules drones and monitors drones in flight.
 >
-> The Fabrikam Drone Delivery app team is about to deploy all the microservices into the AKS cluster. They all are going to be deployed in the same way; it will require to build their Docker images, collect values like Azure service names or any other kind of information, and ultimately deploy using Helm.
+> The Fabrikam Drone Delivery app team is about to deploy all the microservices into the AKS cluster. For each of the application services, a Docker image is created, and deployment values such as Azure service names are collected. The application is then deployed using Helm.
 
 ![Fabrikam Drone Delivery Shipping Application architecture diagram including the messaging flow from Ingestion microservice to Workflow microservice and then from Workflow to Package, Drone Scheduler and Delivery microservices](./imgs/architecture.png)
 
-1. Get the Azure Container Registry server name
+1. Get the Azure Container Registry instance name.
 
    ```bash
    ACR_NAME=$(az deployment group show --resource-group rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.acrName.value -o tsv)
    ACR_SERVER=$(az acr show -n $ACR_NAME --query loginServer -o tsv)
    ```
 
-1. Set the AKS cluster and Application Gateway subnet prefixes
+1. Set the AKS cluster and Application Gateway subnet prefixes.
 
-   :book: The Fabrikan Drone Delivery application follow the zero trust principle when establishing network connections between containers. Initially any container is allowed to establish a connection against another one. The following information is required to create ALLOW Network Policies.
+   :book: The Fabrikan Drone Delivery application follows the zero trust principle when establishing network connections between containers. Initially, any container is allowed to establish a connection with another one. The following information is required to create ALLOW Network Policies.
 
    ```bash
    export CLUSTER_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterSubnetPrefix.value -o tsv)
    export GATEWAY_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.gatewaySubnetPrefix.value -o tsv)
    ```
 
-1. Get the Azure Application Insights settings
+1. Get the Azure Application Insights settings.
 
    ```bash
    export AI_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.appInsightsName.value -o tsv)
    export AI_IKEY=$(az resource show -g rg-shipping-dronedelivery -n $AI_NAME --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv)
    ```
 
-1. Enable the public access to your ACR temporary
+1. Enable temporary public access to the the ACR instance.
 
-   :bulb: The configured network access to the registry is limited to certain
-   networks. In the following steps you are going to need access from your local
-   machine to the ACR instace, so you can upload the Fabrikam Drone Delivery
-   Docker images to it.
+   :bulb: Network access to the registry is limited to specific networks. In the following steps, you will need access from your local machine to the ACR instance to upload container images to it.
 
    ```bash
    az acr update --name $ACR_NAME --public-network-enabled true
    az acr update --name $ACR_NAME --set networkRuleSet.defaultAction="Allow"
    ```
 
-1. Deploy the Delivery service app
+1. Deploy the Delivery service application.
 
-   Build the Delivery service
+   Build the Delivery service.
 
    ```bash
    az acr build -r $ACR_NAME -t $ACR_SERVER/delivery:0.1.0 ./src/shipping/delivery/.
    ```
 
-   Extract Azure resource details for the delivery app
+   Extract Azure resource details for the delivery application.
 
    ```bash
    DELIVERY_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.deliveryIdName.value -o tsv)
@@ -71,7 +68,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    DELIVERY_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DELIVERY_ID_NAME --query clientId -o tsv)
    ```
 
-   Deploy the Delivery service
+   Deploy the Delivery service.
 
    ```bash
    helm package ./charts/delivery/ -u
@@ -95,20 +92,20 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
         --namespace backend-dev
    ```
 
-   Verify the pod is created
+   Verify the delivery service pod is running.
 
    ```bash
    kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=delivery-v0.1.0-dev --timeout=90s
    ```
-1. Deploy the Ingestion service app
+1. Deploy the Ingestion service.
 
-   Build the Ingestion service
+   Build the Ingestion service.
 
    ```bash
    az acr build -r $ACR_NAME -t $ACR_SERVER/ingestion:0.1.0 ./src/shipping/ingestion/.
    ```
 
-   Extract Azure resource details for the ingestion app
+   Extract Azure resource details for the ingestion application.
 
    ```bash
    export INGESTION_QUEUE_NAMESPACE=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.ingestionQueueNamespace.value -o tsv)
@@ -117,7 +114,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    export INGESTION_ACCESS_KEY_VALUE=$(az servicebus namespace authorization-rule keys list --resource-group rg-shipping-dronedelivery --namespace-name $INGESTION_QUEUE_NAMESPACE --name $INGESTION_ACCESS_KEY_NAME --query primaryKey -o tsv)
    ```
 
-   Deploy the Ingestion service
+   Deploy the Ingestion service.
 
    ```bash
    helm package ./charts/ingestion/ -u
@@ -141,15 +138,15 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
         --namespace backend-dev
    ```
 
-   Verify the pod is created
+   Verify the pod is running.
 
    ```bash
-   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=ingestion-v0.1.0-dev --timeout=90s
+   kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=ingestion-v0.1.0-dev --timeout=180s
    ```
 
 1. Deploy the Workflow service app
 
-   Build the Workflow service
+   Build the Workflow service.
 
    ```bash
    az acr build -r $ACR_NAME -t $ACR_SERVER/workflow:0.1.0 ./src/shipping/workflow/.
@@ -203,7 +200,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    EOF
    ```
 
-   Deploy the Workflow service
+   Deploy the Workflow service.
 
    ```bash
    helm package ./charts/workflow/ -u && \
@@ -224,15 +221,15 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
         --namespace backend-dev
    ```
 
-   Verify the pod is created
+   Verify the pod is running.
 
    ```bash
    kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=workflow-v0.1.0-dev --timeout=90s
    ```
 
-1. Deploy the DroneScheduler service app
+1. Deploy the DroneScheduler service application.
 
-   Build the DroneScheduler service
+   Build the DroneScheduler service.
 
    ```bash
    az acr build -r $ACR_NAME -f ./src/shipping/dronescheduler/Dockerfile -t $ACR_SERVER/dronescheduler:0.1.0 ./src/shipping/.
@@ -250,7 +247,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    export DRONESCHEDULER_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
    ```
 
-   Deploy the DroneScheduler service
+   Deploy the DroneScheduler service.
 
    ```bash
    helm package ./charts/dronescheduler/ -u && \
@@ -270,7 +267,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
         --namespace backend-dev
    ```
 
-   Verify the pod is created
+   Verify the pod is running.
 
    ```bash
    kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=dronescheduler-v0.1.0-dev --timeout=90s
@@ -288,7 +285,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 
    ```bash
    export PACKAGE_DATABASE_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.packageMongoDbName.value -o tsv)
-   export PACKAGE_CONNECTION=$(az cosmosdb list-connection-strings --name $PACKAGE_DATABASE_NAME --resource-group rg-shipping-dronedelivery --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
+   export PACKAGE_CONNECTION=$(az cosmosdb keys list --type connection-strings --name $PACKAGE_DATABASE_NAME --resource-group rg-shipping-dronedelivery --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
    export PACKAGE_COLLECTION_NAME=packages
    export PACKAGE_INGRESS_TLS_SECRET_NAME=package-ingress-tls
    ```
@@ -311,20 +308,20 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
         --namespace backend-dev
    ```
 
-   Verify the pod is created
+   Verify the pod is running.
 
    ```bash
    kubectl wait --namespace backend-dev --for=condition=ready pod --selector=app.kubernetes.io/instance=package-v0.1.0-dev --timeout=90s
    ```
 
-1. Disable the public access to your ACR temporary
+1. Remove public access to the Azure Container Registry instance.
 
    ```bash
    az acr update --name $ACR_NAME --set networkRuleSet.defaultAction="Deny"
    az acr update --name $ACR_NAME --public-network-enabled false
    ```
 
-> :book: The app team just finished the installation of the Fabrikam Drone Delivery Shipping app, and it is now operative and ready for their clients to start sending http requests.
+:book: The app team just finished installing the Fabrikam Drone Delivery Shipping app, and it is now operative and ready for their clients to start sending HTTP requests.
 
 ### Next step
 

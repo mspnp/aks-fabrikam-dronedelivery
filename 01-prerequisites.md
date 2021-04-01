@@ -1,6 +1,6 @@
 # Prerequisites
 
-This is the starting point for the instructions on deploying the [AKS Secure Baseline reference implementation](./README.md). There is required access and tooling you'll need in order to accomplish this. Follow the instructions below and on the subsequent pages so that you can get your environment ready to proceed with the AKS cluster creation.
+This document is the starting point for deploying the [AKS Secure Baseline reference implementation](./README.md). There is required access and tooling you need in order to complete the deployment. Follow the instructions below and on the subsequent pages so that you can get your environment ready to proceed with the AKS cluster creation.
 
 ## Steps
 
@@ -23,9 +23,9 @@ This is the starting point for the instructions on deploying the [AKS Secure Bas
 
    [![Launch Azure Cloud Shell](https://docs.microsoft.com/azure/includes/media/cloud-shell-try-it/launchcloudshell.png)](https://shell.azure.com)
 
-1. Clone/download this repo locally, or even better fork this repository.
+1. Clone/download this repo locally, or even better, fork this repository.
 
-   > :twisted_rightwards_arrows: If you have forked this reference implementation repo, you'll be able to customize some of the files and commands for a more personalized experience; also ensure references to repos mentioned are updated to use your own (e.g. the following `GITHUB_REPO`).
+   > :twisted_rightwards_arrows: If you have forked this reference implementation repo, you'll be able to customize some of the files and commands for a more personalized experience; also, ensure references to repos mentioned are updated to use your own (e.g., the following `GITHUB_REPO`).
 
    ```bash
    export GITHUB_REPO=https://github.com/mspnp/aks-fabrikam-dronedelivery.git

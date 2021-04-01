@@ -36,9 +36,9 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
    EOF
    ```
 
-1. Obtain all the identity info to install Azure App Gateway Ingress Controller
+1. Obtain the identity info needed for installing the Azure App Gateway Ingress Controller.
 
-   > :book: the app team wants to use Azure AD Pod Identity to assign an identity to its ingress controller pod, so they will need to obtain indentity information such us the user managed identity resource id and client id for the ingress controller created as part of the cluster pre requisites. This way when installing Azure Application Gateway Ingress Controller they can provide such information to create the Kubernetes Azure Identity objects.
+   > :book: The app team wants to use Azure AD Pod Identity to assign an identity to its ingress controller pod. They will need to obtain identity information such as the user-managed identity resource id and client id for the ingress controller created as part of the cluster prerequisites. When installing the Azure Application Gateway ingress controller, they can provide such information to create the Kubernetes Azure Identity objects.
 
    ```bash
    INGRESS_CONTROLLER_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.appGatewayControllerPrincipalResourceId.value -o tsv)
@@ -46,15 +46,15 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
    ```
 1. Get the Name of Application Gateway
 
-   > :book: The app team needs to wire up the in-cluster AGIC with Application Gateway and that requires the Azure Application Gateway name.
+   > :book: The app team needs to connect the in-cluster Application gateway ingress controller with the Azure Application Gateway instance, which requires the Azure Application Gateway name.
 
    ```bash
    APPGW_NAME=$(az deployment group show --resource-group rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.agwName.value -o tsv)
    ```
 
-1. Install the Azure App Gateway Ingress Controller
+1. Install the Azure App Gateway Ingress Controller.
 
-   > :book: The Fabrikam Drone Delivery app's team has made the decision of having an externalized ingress controller, since the team wants to simplify the ingestion of traffic into the AKS cluster, keep it safe, improve the performance, and save resources. The selected solution in this case was the Azure App Gateway Ingress Controller. This eliminates the necessity of an extra load balancer since pods will establish direct connections against their Azure App Gateway service reducing the number of hops which results in better performance. The traffic is now being handle exclusively by Azure Application Gateway that has built-in capabilities for auto-scaling, and the Fabrikam Drone Delivery workload pods without the necessity of scaling out any other component in the middle as it will be the case compared against any other in-cluster ingress controller solutions that ends up consuming added resources from the AKS cluster. Additionally, Azure Application Gateway has end-to-end TLS integrated with a web aplication firewall in front.
+   > :book: The Fabrikam Drone Delivery app's team has decided to use an externalized ingress controller. This configuration allows the team to simplify traffic ingestion, keep it safe, improve performance, and better utilize cluster resources. The selected solution is to use an Azure App Gateway Ingress Controller. This solution eliminates the necessity of an extra load balancer.  Pods establish direct connections with the Azure App Gateway service, reducing the number of network hops,  resulting in better performance. The traffic is now handled exclusively by Azure Application Gateway, which has native capabilities for auto-scaling workload pods without the necessity of scaling out any other component, as is the case with an in-cluster ingress controller. Additionally, Azure Application Gateway has end-to-end TLS integrated with a web application firewall in front.
 
    ```bash
    helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
@@ -77,13 +77,14 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
      --version 1.3.0
    ```
 
-1. Wait for AGIC to be ready
+1. Wait for Application Gateway Ingress Controller to be ready.
 
    ```bash
    kubectl wait --namespace kube-system --for=condition=ready pod --selector=release=ingress-azure-dev --timeout=90s
    ```
 
-   > :warning: Once you deploy the Azure Application Gateway Ingress Controller it turns your Azure Application Gateway instance into a managed service and by default the ingress controller will assume full ownership. In other words, AGIC is going to attempt to alter the Azure Application Gateway it is linked to by writing rules based on your cluster configuration. The ARM template for the cluster stamp in this project has been designed to be executed as many times as needed. Therefore if the ARM template is redeployed all the AGIC-written rules will be removed. In this scenario, please take into account that it requires a manual intervention to reconcile the rules in your Azure Application Gateway by causing downtimes. Additionally, it is not possible to share an Azure Application Gateway between multiple clusters or different Azure services with the default configuration provided in this reference implementation, otherwise it might end up with race conditions or unexpected behaviors. For more information, please take a look at [Agic reconcile](https://azure.github.io/application-gateway-kubernetes-ingress/features/agic-reconcile/) and [Multi-cluster / Shared App Gateway](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-existing.md#multi-cluster--shared-app-gateway).
+   > :warning: Once deployed, the Azure Application Gateway Ingress Controller manages the Azure Application Gateway instance. Application Gateway Ingress Controller updates the Azure Application Gateway it is linked to by writing rules based on your cluster configuration. The ARM template used to deploy the cluster is designed to be executed as many times as needed. If the ARM template is redeployed, all the AGIC-written rules are removed. In this scenario, please consider that it requires a manual intervention to reconcile the rules in your Azure Application Gateway by causing downtimes. Additionally, it is impossible to share an Azure Application Gateway between multiple clusters or different Azure services with the default configuration provided in this reference implementation; otherwise, it might end up with race conditions or unexpected behaviors. For more information, please take a look at [Agic reconcile](https://azure.github.io/application-gateway-kubernetes-ingress/features/agic-reconcile/) and [Multi-cluster / Shared App Gateway](https://github.com/Azure/application-gateway-kubernetes-ingress/blob/master/docs/setup/install-existing.md#multi-cluster--shared-app-gateway).
+
 ### Next step
 
 :arrow_forward: [Deploy the Workload](./09-workload.md)
