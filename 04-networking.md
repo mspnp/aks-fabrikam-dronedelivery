@@ -52,13 +52,13 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
    
 
    ```bash
-   # [This takes about ten minutes to run.]
    HUB_VNET_ID=$(az deployment group show -g rg-enterprise-networking-hubs -n hub-default --query properties.outputs.hubVnetId.value -o tsv)
    ```
 
    Now, deploy the ARM template, which creates the virtual spoke network and other related configurations such as peerings, routing, and diagnostic configurations..
 
    ```bash
+   # [This takes about ten minutes to run.]
    az deployment group create --resource-group rg-enterprise-networking-spokes --template-file networking/spoke-shipping-dronedelivery.json --parameters location=eastus2 hubVnetResourceId="${HUB_VNET_ID}"
    ```
 

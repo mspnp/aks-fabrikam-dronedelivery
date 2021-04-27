@@ -94,7 +94,7 @@
             }
         },
         "kubernetesVersion": {
-            "defaultValue": "1.19.6",
+            "defaultValue": "1.19.9",
             "type": "string"
         },
         "acrResourceGroupName": {
