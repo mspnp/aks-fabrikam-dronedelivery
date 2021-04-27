@@ -102,16 +102,15 @@ jobs:
               clusterAuthorizedIPRanges=${{ env.CLUSTER_AUTHORIZED_IP_RANGES}} \
               appGatewayListenerCertificate=${{ secrets.APP_GATEWAY_LISTENER_CERTIFICATE_BASE64 }} \
               aksIngressControllerCertificate=${{ secrets.AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 }} \
-              deliveryIdName=${{DELIVERY_ID_NAME}} \
-              deliveryPrincipalId=${{DELIVERY_ID_PRINCIPAL_ID}} \
-              droneSchedulerIdName=${{DRONESCHEDULER_ID_NAME}} \
-              droneSchedulerPrincipalId=${{DRONESCHEDULER_ID_PRINCIPAL_ID}} \
-              workflowIdName=${{WORKFLOW_ID_NAME}} \
-              workflowPrincipalId=${{WORKFLOW_ID_PRINCIPAL_ID}} \
-              ingressControllerIdName=${{INGRESS_CONTROLLER_ID_NAME}} \
-              ingressControllerPrincipalId=${{INGRESS_CONTROLLER_ID_PRINCIPAL_ID}} \
-              acrResourceGroupName=${{ACR_RESOURCE_GROUP}} \
-              acrResourceGroupLocation=${{ACR_LOCATION}}
+              deliveryIdName=${{ env.DELIVERY_ID_NAME }} \
+              deliveryPrincipalId=${{ env.DELIVERY_ID_PRINCIPAL_ID }} \
+              droneSchedulerIdName=${{ env.DRONESCHEDULER_ID_NAME }} \
+              droneSchedulerPrincipalId=${{ env.DRONESCHEDULER_ID_PRINCIPAL_ID }} \
+              workflowIdName=${{ env.WORKFLOW_ID_NAME }} \
+              workflowPrincipalId=${{ env.WORKFLOW_ID_PRINCIPAL_ID }} \
+              ingressControllerIdName=${{ env.INGRESS_CONTROLLER_ID_NAME }} \
+              ingressControllerPrincipalId=${{ env.INGRESS_CONTROLLER_ID_PRINCIPAL_ID }} \
+              acrResourceGroupName=${{ env.ACR_RESOURCE_GROUP }}
 
           echo "::set-output name=name::$(az deployment group show --resource-group ${{ env.RESOURCE_GROUP }} -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)"
         azcliversion: 2.6.0
