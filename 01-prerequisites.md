@@ -36,6 +36,7 @@ This document is the starting point for deploying the [AKS Secure Baseline refer
 
 1. Ensure [OpenSSL is installed](https://github.com/openssl/openssl#download) in order to generate self-signed certs used in this implementation.
 1. [JQ](https://stedolan.github.io/jq/download/)
+1. Run `export MSYS_NO_PATHCONV=1` to avoid PATH mangling. 
 1. [Helm 3](https://helm.sh)
 
    ```bash
