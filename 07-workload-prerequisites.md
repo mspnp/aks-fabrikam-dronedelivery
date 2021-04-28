@@ -40,9 +40,13 @@ The AKS Cluster has been enrolled in [GitOps management](./06-gitops.md), wrappi
 
 1. Confirm policies are applied to the AKS cluster
 
-   ```bash
+    ```bash
+    export AKS_CLUSTER_NAME=$(az deployment group show --resource-group rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)
+
+    az aks get-credentials -g rg-shipping-dronedelivery -n $AKS_CLUSTER_NAME
+
    kubectl get constrainttemplate
-   ```
+    ```
 
    The output should look similar to this:
 
