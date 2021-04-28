@@ -243,7 +243,8 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    export DRONESCHEDULER_COSMOSDB_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
    export DRONESCHEDULER_DATABASE_NAME="invoicing"
    export DRONESCHEDULER_COLLECTION_NAME="utilization"
-   export DRONESCHEDULER_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.droneSchedulerPrincipalResourceId.value -o tsv) && \
+   export DRONESCHEDULER_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.droneSchedulerIdName.value -o tsv) 
+   export DRONESCHEDULER_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.droneSchedulerPrincipalResourceId.value -o tsv)
    export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DRONESCHEDULER_ID_NAME --query clientId -o tsv)
    export DRONESCHEDULER_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
    ```
