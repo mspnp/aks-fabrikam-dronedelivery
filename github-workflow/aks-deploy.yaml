@@ -12,7 +12,7 @@
 #    │   │   └── aad-pod-identity.yaml
 #    │   ├── dronedelivery
 #    │   │   └─ network-policies
-#    │   │   └─── np-deny-all-non-whitelisted-traffic-dev.yaml
+#    │   │   └─── np-deny-all-non-allowed-traffic-dev.yaml
 #    │   │   └─ rbac
 #    │   │   └─── rbac-ai.yaml
 #    │   ├── akv-secrets-store-csi.yaml
