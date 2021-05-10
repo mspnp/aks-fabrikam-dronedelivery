@@ -32,7 +32,7 @@ This document is the starting point for deploying the [AKS Secure Baseline refer
    git clone $GITHUB_REPO
    ```
 
-   > :bulb: The steps shown here and elsewhere in the reference implementation use Bash shell commands. On Windows, you can use the [Windows Subsystem for Linux](https://docs.microsoft.com/windows/wsl/about#what-is-wsl-2) to run Bash. If you are planning to use VS Code, create a script file to store commands in this tutorial and run them using VS Code's integrated Bash terminal then run `export MSYS_NO_PATHCONV=1` to avoid path mangling.
+   > :bulb: The steps shown here and elsewhere in the reference implementation use Bash shell commands. On Windows, you can use the [Windows Subsystem for Linux](https://docs.microsoft.com/windows/wsl/about#what-is-wsl-2) to run Bash. If you are planning to use VS Code, create a script file to store commands from this tutorial in it and run using VS Code's integrated Bash terminal then run `export MSYS_NO_PATHCONV=1` to avoid path mangling.
 
 1. Ensure [OpenSSL is installed](https://github.com/openssl/openssl#download) in order to generate self-signed certs used in this implementation.
 1. [JQ](https://stedolan.github.io/jq/download/)
