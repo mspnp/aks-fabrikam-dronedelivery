@@ -46,7 +46,7 @@ The AKS Cluster has been enrolled in [GitOps management](./06-gitops.md), wrappi
     az aks get-credentials -g rg-shipping-dronedelivery -n $AKS_CLUSTER_NAME
 
    kubectl get constrainttemplate
-    ```
+   ```
 
    The output should look similar to this:
 
