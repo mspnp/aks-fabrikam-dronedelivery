@@ -14,7 +14,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    # [This takes less than two  minutes.]
    az deployment sub create --name workload-stamp-prereqs --location eastus --template-file ./workload/workload-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus
 
-   az deployment sub create --name aks-cluster-stamp-prereqs --location eastus --template-file cluster-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus
+   az deployment sub create --name cluster-stamp-prereqs --location eastus --template-file cluster-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus
    ```
 
 1. Get the AKS Fabrikam Drone Delivery 00's Azure Container Registry resource group name.
@@ -36,7 +36,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    DRONESCHEDULER_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $DRONESCHEDULER_ID_NAME --query principalId -o tsv) && \
    WORKFLOW_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp-prereqs-dep --query properties.outputs.workflowIdName.value -o tsv) && \
    WORKFLOW_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $WORKFLOW_ID_NAME --query principalId -o tsv) && \
-   INGRESS_CONTROLLER_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n aks-cluster-stamp-prereqs-identities --query properties.outputs.appGatewayControllerIdName.value -o tsv) && \
+   INGRESS_CONTROLLER_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.appGatewayControllerIdName.value -o tsv) && \
    INGRESS_CONTROLLER_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $INGRESS_CONTROLLER_ID_NAME --query principalId -o tsv)
    ```
 
