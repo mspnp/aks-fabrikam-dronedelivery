@@ -47,7 +47,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the Delivery service.
 
    ```bash
-   az acr build -r $ACR_NAME -t $ACR_SERVER/delivery:0.1.0 ../aks-fabrikam-dronedelivery-workload/src/shipping/delivery/.
+   az acr build -r $ACR_NAME -t $ACR_SERVER/delivery:0.1.0 ./workload/src/shipping/delivery/.
    ```
 
    Extract Azure resource details for the delivery application.
@@ -95,7 +95,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the Ingestion service.
 
    ```bash
-   az acr build -r $ACR_NAME -t $ACR_SERVER/ingestion:0.1.0 ../aks-fabrikam-dronedelivery-workload/src/shipping/ingestion/.
+   az acr build -r $ACR_NAME -t $ACR_SERVER/ingestion:0.1.0 ./workload/src/shipping/ingestion/.
    ```
 
    Extract Azure resource details for the ingestion application.
@@ -142,7 +142,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the Workflow service.
 
    ```bash
-   az acr build -r $ACR_NAME -t $ACR_SERVER/workflow:0.1.0 ../aks-fabrikam-dronedelivery-workload/src/shipping/workflow/.
+   az acr build -r $ACR_NAME -t $ACR_SERVER/workflow:0.1.0 ./workload/src/shipping/workflow/.
    ```
 
    Extract Azure resource details for the workflow app
@@ -225,7 +225,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the DroneScheduler service.
 
    ```bash
-   az acr build -r $ACR_NAME -f ../aks-fabrikam-dronedelivery-workload/src/shipping/dronescheduler/Dockerfile -t $ACR_SERVER/dronescheduler:0.1.0 ../aks-fabrikam-dronedelivery-workload/src/shipping/.
+   az acr build -r $ACR_NAME -f ./workload/src/shipping/dronescheduler/Dockerfile -t $ACR_SERVER/dronescheduler:0.1.0 ./workload/src/shipping/.
    ```
 
    Extract Azure resource details for the dronescheduler app
@@ -271,7 +271,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Build the Package service
 
    ```bash
-   az acr build -r $ACR_NAME -t $ACR_SERVER/package:0.1.0 ../aks-fabrikam-dronedelivery-workload/src/shipping/package/.
+   az acr build -r $ACR_NAME -t $ACR_SERVER/package:0.1.0 ./workload/src/shipping/package/.
    ```
 
    Extract Azure resource details for the package app
