@@ -609,47 +609,6 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "EnsureClusterSpHasRbacToVNet",
-            "apiVersion": "2017-05-10",
-            "dependsOn": [
-                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
-            ],
-            "resourceGroup": "[variables('vNetResourceGroup')]",
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "resources": [
-                        {
-                            "type": "Microsoft.Network/virtualNetworks/providers/roleAssignments",
-                            "apiVersion": "2018-09-01-preview",
-                            "name": "[concat(split(parameters('targetVnetResourceId'),'/')[8], '/Microsoft.Authorization/', guid(resourceGroup().id, variables('networkContributorRole'),'-aks-system-assigned-managed-identity-ilb'))]",
-                            "properties": {
-                                "roleDefinitionId": "[variables('networkContributorRole')]",
-                                "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-11-01', 'Full').identity.principalId]",
-                                "scope": "[parameters('targetVnetResourceId')]",
-                                "principalType": "ServicePrincipal"
-                            }
-                        },
-                        {
-                            "type": "Microsoft.Network/publicIpAddresses/providers/roleAssignments",
-                            "apiVersion": "2018-09-01-preview",
-                            "name": "[concat('pip-ShippingDroneDelivery-00', '/Microsoft.Authorization/', guid(resourceGroup().id, variables('networkContributorRole'),'-agic-system-assigned-managed-identity-appw-public-ip'))]",
-                            "comments": "Grant the Azure App Gateway Ingress Controller manage identity with Network Contributor role permissions over the Application Gateway Public Ip",
-                            "properties": {
-                                "roleDefinitionId": "[variables('networkContributorRole')]",
-                                "principalId": "[parameters('ingressControllerPrincipalId')]",
-                                "scope": "[resourceId(subscription().subscriptionId,variables('vNetResourceGroup'),'Microsoft.Network/publicIpAddresses','pip-ShippingDroneDelivery-00')]",
-                                "principalType": "ServicePrincipal"
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Resources/deployments",
             "name": "EnsureClusterUserAssignedHasRbacToManageVMSS",
             "apiVersion": "2017-05-10",
             "dependsOn": [
@@ -1968,7 +1927,7 @@
             "type": "string"
         },
         "droneSchedulerPrincipalResourceId": {
-            "value": "[concat(subscription().id, '/resourceGroups/',resourceGroup().name,'/providers/Microsoft.ManagedIdentity/userAssignedIdentities/',variables('droneSchedulerIdName'))]",
+            "value": "[concat(subscription().id, '/resourceGroups/',resourceGroup().name,'/providers/Microsoft.ManagedIdentity/userAssignedIdentities/',parameters('droneSchedulerIdName'))]",
             "type": "string"
         }
     }
