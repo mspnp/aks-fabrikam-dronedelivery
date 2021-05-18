@@ -29,7 +29,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 1. Get the Azure Application Insights settings.
 
    ```bash
-   export AI_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.appInsightsName.value -o tsv)
+   export AI_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.appInsightsName.value -o tsv)
    export AI_IKEY=$(az resource show -g rg-shipping-dronedelivery -n $AI_NAME --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv)
    ```
 
