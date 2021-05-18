@@ -23,19 +23,21 @@ This document is the starting point for deploying the [AKS Secure Baseline refer
 
    [![Launch Azure Cloud Shell](https://docs.microsoft.com/azure/includes/media/cloud-shell-try-it/launchcloudshell.png)](https://shell.azure.com)
 
-1. Clone/download these repos locally, or even better, fork these repositories.
+1. Clone/download this repo locally, or even better, fork this repositories.
 
    > :twisted_rightwards_arrows: If you have forked this reference implementation repos, you'll be able to customize some of the files and commands for a more personalized experience; also, ensure references to repos mentioned are updated to use your own (e.g., the following `GITHUB_REPO`).
-
-    ```bash
-    export WL_GITHUB_REPO=https://github.com/mspnp/aks-fabrikam-dronedelivery-workload.git
-    git clone $WL_GITHUB_REPO 
-    ```
 
    ```bash
    export GITHUB_REPO=https://github.com/mspnp/aks-fabrikam-dronedelivery.git
    git clone $GITHUB_REPO
    ```
+
+1. Add the Workload repository as a submodule of your main repo.
+
+    ```bash
+    export WL_GITHUB_REPO=https://github.com/mspnp/aks-fabrikam-dronedelivery-workload.git
+    git submodule add $WL_GITHUB_REPO workload
+    ```
 
    > :bulb: The steps shown here and elsewhere in the reference implementation use Bash shell commands. On Windows, you can use the [Windows Subsystem for Linux](https://docs.microsoft.com/windows/wsl/about#what-is-wsl-2) to run Bash.
 
