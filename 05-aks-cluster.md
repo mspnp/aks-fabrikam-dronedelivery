@@ -12,7 +12,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
    ```bash
    # [This takes less than two  minutes.]
-   az deployment sub create --name workload-stamp-prereqs --location eastus --template-file ./workload/workload-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus
+   az deployment sub create --name workload-stamp-prereqs --location eastus2 --template-file ./workload/workload-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus2
 
    az deployment sub create --name cluster-stamp-prereqs --location eastus --template-file cluster-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus
    ```

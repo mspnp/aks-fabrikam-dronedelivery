@@ -186,8 +186,8 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
              objectAlias: QueueAccessPolicyKey
              objectType: secret
            - |
-             objectName: ApplicationInsights-InstrumentationKey
-             objectAlias: ApplicationInsights-InstrumentationKey
+             objectName: ApplicationInsights--InstrumentationKey
+             objectAlias: ApplicationInsights--InstrumentationKey
              objectType: secret
        tenantId: "${TENANT_ID}"
    EOF
