@@ -41,8 +41,6 @@ spec:
   - to:
     - ipBlock:
         cidr: 0.0.0.0/0
-        except:
-        - {{ required "networkPolicy.egress.external.clusterSubnetPrefix is required to enable external traffic" .Values.networkPolicy.egress.external.clusterSubnetPrefix }}
 {{- else if .Values.networkPolicy.egress.allowAll }}
   - to: []
 {{- end -}}
