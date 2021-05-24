@@ -40,6 +40,13 @@ spec:
   - to:
     - ipBlock:
         cidr: 0.0.0.0/0
+  # allow egress traffic to all external resources except pods within the
+  # cluster subnet
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - {{ required "networkPolicy.egress.external.clusterSubnetPrefix is required to enable external traffic" .Values.networkPolicy.egress.external.clusterSubnetPrefix }}
 {{- else if .Values.networkPolicy.egress.allowAll }}
   - to: []
 {{- end }}
