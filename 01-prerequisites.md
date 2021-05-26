@@ -29,15 +29,8 @@ This document is the starting point for deploying the [AKS Secure Baseline refer
 
    ```bash
    export GITHUB_REPO=https://github.com/mspnp/aks-fabrikam-dronedelivery.git
-   git clone $GITHUB_REPO
+   git clone --recurse-submodules $GITHUB_REPO
    ```
-
-1. Add the Workload repository as a submodule of your main repo.
-
-    ```bash
-    export WL_GITHUB_REPO=https://github.com/mspnp/aks-fabrikam-dronedelivery-workload.git
-    git submodule add $WL_GITHUB_REPO workload
-    ```
 
    > :bulb: The steps shown here and elsewhere in the reference implementation use Bash shell commands. On Windows, you can use the [Windows Subsystem for Linux](https://docs.microsoft.com/windows/wsl/about#what-is-wsl-2) to run Bash. If you are planning to use VS Code, create a script file to store commands from this tutorial in it and run using VS Code's integrated Bash terminal then run `export MSYS_NO_PATHCONV=1` to avoid path mangling.
 
