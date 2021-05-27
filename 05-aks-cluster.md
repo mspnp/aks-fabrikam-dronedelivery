@@ -4,15 +4,17 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
 ## Steps
 
-1. Create the AKS cluster resource group.
+1. Create the AKS cluster and the Azure Container Registry resource groups.
 
    > :book: The app team working on behalf of business unit "shipping" is looking to create an AKS cluster for the app that they are creating (Application ID: Drone Delivery). They have worked with the organization's networking team, who have provisioned a spoke network in which to deploy the cluster and network-aware external resources (such as Application Gateway). They took that information and added it to their [`cluster-stamp.json`](./cluster-stamp.json) and [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) files.
    >
    > They create 3 dedicated resource groups to be the parent groups for the applications during its lifetime. These are mainly for building time and runtime. Additionally, the individual user identities for in-cluster apps are going to be created as part of this step.
 
    ```bash
-   # [This takes less than two  minute.]
-   az deployment sub create --name cluster-stamp-prereqs --location eastus2 --template-file cluster-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus2
+   # [This takes less than two  minutes.]
+   az deployment sub create --name workload-stamp-prereqs --location eastus2 --template-file ./workload/workload-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus2
+
+   az deployment sub create --name cluster-stamp-prereqs --location eastus --template-file cluster-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus
    ```
 
 1. Get the AKS Fabrikam Drone Delivery 00's Azure Container Registry resource group name.
@@ -20,7 +22,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    > :book: The app team will need an isolated resource group for the Azure  Container Registry that contains all their business application Docker images.
 
    ```bash
-   ACR_RESOURCE_GROUP=$(az deployment sub show -n cluster-stamp-prereqs --query properties.outputs.acrResourceGroupName.value -o tsv)
+   ACR_RESOURCE_GROUP=$(az deployment sub show -n workload-stamp-prereqs --query properties.outputs.acrResourceGroupName.value -o tsv)
    ```
 
 1. Get the AKS Fabrikam Drone Delivery 00's user identities
@@ -28,11 +30,11 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    > :book: the app team will need to assign roles to the user identities so these are granted appropriate access to specific Azure services.
 
    ```bash
-   DELIVERY_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.deliveryIdName.value -o tsv) && \
+   DELIVERY_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp-prereqs-dep --query properties.outputs.deliveryIdName.value -o tsv) && \
    DELIVERY_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $DELIVERY_ID_NAME --query principalId -o tsv) && \
-   DRONESCHEDULER_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.droneSchedulerIdName.value -o tsv) && \
+   DRONESCHEDULER_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp-prereqs-dep --query properties.outputs.droneSchedulerIdName.value -o tsv) && \
    DRONESCHEDULER_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $DRONESCHEDULER_ID_NAME --query principalId -o tsv) && \
-   WORKFLOW_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.workflowIdName.value -o tsv) && \
+   WORKFLOW_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp-prereqs-dep --query properties.outputs.workflowIdName.value -o tsv) && \
    WORKFLOW_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $WORKFLOW_ID_NAME --query principalId -o tsv) && \
    INGRESS_CONTROLLER_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.appGatewayControllerIdName.value -o tsv) && \
    INGRESS_CONTROLLER_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $INGRESS_CONTROLLER_ID_NAME --query principalId -o tsv)
@@ -55,6 +57,20 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    TARGET_VNET_RESOURCE_ID=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterVnetResourceId.value -o tsv)
    ```
 
+1. Deploy the Azure Container Registry ARM template.
+
+   ```bash
+   # [This takes about 10 minutes.]
+   az deployment group create -f ./workload/workload-stamp.json -g rg-shipping-dronedelivery -p droneSchedulerPrincipalId=$DRONESCHEDULER_ID_PRINCIPAL_ID -p workflowPrincipalId=$WORKFLOW_ID_PRINCIPAL_ID -p deliveryPrincipalId=$DELIVERY_ID_PRINCIPAL_ID -p acrResourceGroupName=$ACR_RESOURCE_GROUP
+   ```
+
+1. Get the Azure Container Registry deployment output variables
+
+   ```bash
+   ACR_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.acrName.value -o tsv) && \
+   ACR_SERVER=$(az acr show -n $ACR_NAME --query loginServer -o tsv)
+   ```
+
 1. Deploy the cluster ARM template.
   :exclamation: By default, this deployment will allow unrestricted access to your cluster's API Server. You can limit access to the API Server to a set of well-known IP addresses such as your hub firewall IP, bastion subnet, and build agents. You can do this by providing these IP addresses to the `clusterAuthorizedIPRanges` parameter of the cluster-stamp ARM template.
 
@@ -62,7 +78,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
    ```bash
    # [This takes about 15 minutes.]
-   az deployment group create --resource-group rg-shipping-dronedelivery --template-file cluster-stamp.json --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacAadProfileAdminGroupObjectID=$K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID k8sRbacAadProfileTenantId=$K8S_RBAC_AAD_PROFILE_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=$DELIVERY_ID_NAME deliveryPrincipalId=$DELIVERY_ID_PRINCIPAL_ID droneSchedulerIdName=$DRONESCHEDULER_ID_NAME droneSchedulerPrincipalId=$DRONESCHEDULER_ID_PRINCIPAL_ID workflowIdName=$WORKFLOW_ID_NAME workflowPrincipalId=$WORKFLOW_ID_PRINCIPAL_ID ingressControllerIdName=$INGRESS_CONTROLLER_ID_NAME ingressControllerPrincipalId=$INGRESS_CONTROLLER_ID_PRINCIPAL_ID acrResourceGroupName=$ACR_RESOURCE_GROUP
+   az deployment group create --resource-group rg-shipping-dronedelivery --template-file cluster-stamp.json --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacAadProfileAdminGroupObjectID=$K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID k8sRbacAadProfileTenantId=$K8S_RBAC_AAD_PROFILE_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=$DELIVERY_ID_NAME  droneSchedulerIdName=$DRONESCHEDULER_ID_NAME workflowIdName=$WORKFLOW_ID_NAME ingressControllerIdName=$INGRESS_CONTROLLER_ID_NAME ingressControllerPrincipalId=$INGRESS_CONTROLLER_ID_PRINCIPAL_ID acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME
    ```
 
    > Alternatively, you could have updated the [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file and deployed as above, using `--parameters "@azuredeploy.parameters.prod.json"` instead of the individual key-value pairs.

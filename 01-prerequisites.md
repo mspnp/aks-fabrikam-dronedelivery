@@ -25,11 +25,11 @@ This document is the starting point for deploying the [AKS Secure Baseline refer
 
 1. Clone/download this repo locally, or even better, fork this repository.
 
-   > :twisted_rightwards_arrows: If you have forked this reference implementation repo, you'll be able to customize some of the files and commands for a more personalized experience; also, ensure references to repos mentioned are updated to use your own (e.g., the following `GITHUB_REPO`).
+   > :twisted_rightwards_arrows: If you have forked this reference implementation repos, you'll be able to customize some of the files and commands for a more personalized experience; also, ensure references to repos mentioned are updated to use your own (e.g., the following `GITHUB_REPO`).
 
    ```bash
    export GITHUB_REPO=https://github.com/mspnp/aks-fabrikam-dronedelivery.git
-   git clone $GITHUB_REPO
+   git clone --recurse-submodules $GITHUB_REPO
    ```
 
    > :bulb: The steps shown here and elsewhere in the reference implementation use Bash shell commands. On Windows, you can use the [Windows Subsystem for Linux](https://docs.microsoft.com/windows/wsl/about#what-is-wsl-2) to run Bash. If you are planning to use VS Code, create a script file to store commands from this tutorial in it and run using VS Code's integrated Bash terminal then run `export MSYS_NO_PATHCONV=1` to avoid path mangling.

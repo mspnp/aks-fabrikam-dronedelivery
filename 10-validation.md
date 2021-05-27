@@ -45,7 +45,7 @@ This section will help you to validate the workload is exposed correctly and res
    curl "https://dronedelivery.fabrikam.com/api/deliveries/$DELIVERY_ID" --resolve dronedelivery.fabrikam.com:443:$APPGW_PUBLIC_IP --header 'Accept: application/json' -k
    ```
 
-## Validate the Distruted Tracing solution
+## Validate the Distributed Tracing solution
 
    > :book: The app team decided to use [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) as their Application Performance Management (APM) tool. In a microservices architecture, making use of this tooling is critical when monitoring the application to detect anomalies and easily diagnose issues and quickly understand the dependencies between services.  The AKS Fabrikam Drone Delivery Shipping Application is a polyglot solution using .NET Core, Node.js, and Java.  Application Insights, which is part of Azure Monitor, can work with these languages and many others.  The app team also wanted to ensure that the telemetry being sent from the services was well contextualized in the Kubernetes world.  That's why they enriched the telemetry to incorporate image names, container information, and more.
 
