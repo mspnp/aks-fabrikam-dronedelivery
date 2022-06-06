@@ -26,7 +26,7 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 1. Create the first Azure AD group that will map the Kubernetes Cluster Role Admin. If you already have a security group appropriate for cluster admins, consider using that group and skipping this step. If using your own group, you will need to update group object names throughout the reference implementation.
 
    ```bash
-   export K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID=$(az ad group create --display-name aad-to-dronedelivery-cluster-admin --mail-nickname aad-to-dronedelivery-cluster-admin --query objectId -o tsv)
+   export K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID=$(az ad group create --display-name aad-to-dronedelivery-cluster-admin --mail-nickname aad-to-dronedelivery-cluster-admin --query id -o tsv)
    ```
 
 1. Create a break-glass Cluster Admin user for the Fabrikam Drone Delivery AKS cluster.
@@ -35,7 +35,7 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 
    ```bash
    export K8S_RBAC_AAD_PROFILE_TENANT_DOMAIN_NAME=$(az ad signed-in-user show --query 'userPrincipalName' -o tsv | cut -d '@' -f 2 | sed 's/\"//')
-   export AKS_ADMIN_OBJECTID=$(az ad user create --display-name=dronedelivery-admin --user-principal-name dronedelivery-admin@${K8S_RBAC_AAD_PROFILE_TENANT_DOMAIN_NAME} --force-change-password-next-login --password ChangeMeDroneDeliveryAdminChangeMe! --query objectId -o tsv)
+   export AKS_ADMIN_OBJECTID=$(az ad user create --display-name=dronedelivery-admin --user-principal-name dronedelivery-admin@${K8S_RBAC_AAD_PROFILE_TENANT_DOMAIN_NAME} --force-change-password-next-sign-in --password ChangeMeDroneDeliveryAdminChangeMe! --query id -o tsv)
    ```
 
 1. Add the new admin user to the new security group to grant the Kubernetes Cluster Admin role.
