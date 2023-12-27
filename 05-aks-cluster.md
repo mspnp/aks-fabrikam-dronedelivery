@@ -93,7 +93,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
        export APP_ID=$(grep -oP '(?<="clientId": ").*?[^\\](?=",)' sp.json)
 
        # Wait for propagation
-       until az ad sp show --id ${APP_ID} &> /dev/null ; do echo "Waiting for Azure AD propagation" && sleep 5; done
+       until az ad sp show --id ${APP_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
 
        # Assign built-in Contributor RBAC role for creating resource groups and performing deployments at the subscription level
        az role assignment create --assignee $APP_ID --role 'Contributor'

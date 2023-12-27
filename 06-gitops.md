@@ -52,7 +52,7 @@ GitOps allows a team to author Kubernetes manifest files, persist them in their 
    ```bash
    # Verify the user you logged in with has the appropriate permissions, which should result in a "yes" response.
    # If you receive "no" to this command, check which user you authenticated as and ensure they are
-   # assigned to the Azure AD Group you designated for cluster admins.
+   # assigned to the Microsoft Entra group you designated for cluster admins.
    kubectl auth can-i create namespace -A
 
    kubectl create namespace cluster-baseline-settings

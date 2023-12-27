@@ -300,7 +300,7 @@
                                 },
                                 {
                                     "name": "managed-k8s-api-tcp-443",
-                                    "description": "in-cluster apps could contact the Kubernetes Api Server using its endpoing IP address without providing the SNI extension, something which is not allowed by Azure Firewall. This rule takes care of it by allowing to establish connections against well-known Azure Public Ip addresses over the port 443. For instance this will be the case of Azure AD Pod identity if it does not reside within the kube-system namespace or Azure Application Gateway Ingress Controller",
+                                    "description": "in-cluster apps could contact the Kubernetes Api Server using its endpoing IP address without providing the SNI extension, something which is not allowed by Azure Firewall. This rule takes care of it by allowing to establish connections against well-known Azure Public Ip addresses over the port 443. For instance this will be the case of Microsoft Entra Pod identity if it does not reside within the kube-system namespace or Azure Application Gateway Ingress Controller",
                                     "protocols": [
                                         "TCP"
                                     ],
