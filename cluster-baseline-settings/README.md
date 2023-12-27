@@ -7,13 +7,13 @@ This is the root of the GitOps configuration directory. These Kubernetes object 
 ## Contents
 
 * Default Namespaces
-* Kubernetes RBAC Role Assignments to Azure AD Principals
+* Kubernetes RBAC Role Assignments to Microsoft Entra Principals
 * [Kured](#kured)
 * Ingress Network Policy
 * Flux (self-managing)
 * Azure Monitor Prometheus Scraping
 * Azure KeyVault Secret Store CSI Provider
-* Azure AD Pod Identity
+* Microsoft Entra Pod Identity
 
 
 ### Kured

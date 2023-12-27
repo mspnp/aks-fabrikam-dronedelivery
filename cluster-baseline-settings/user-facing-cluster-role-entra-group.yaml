@@ -3,7 +3,7 @@
 #   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 #  ------------------------------------------------------------
 
-#  Mapping k8s user facing role to AAD group: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
+#  Mapping k8s user facing role to Microsoft Entra group: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -14,7 +14,7 @@ roleRef:
   name: cluster-admin
 subjects:
   - kind: Group
-    name: <replace-with-an-aad-group-object-id-for-this-cluster-role-binding>
+    name: <replace-with-an-entra-group-object-id-for-this-cluster-role-binding>
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -26,7 +26,7 @@ roleRef:
   name: admin
 subjects:
   - kind: Group
-    name: <replace-with-an-aad-group-object-id-for-this-cluster-role-binding>
+    name: <replace-with-an-entra-group-object-id-for-this-cluster-role-binding>
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -38,7 +38,7 @@ roleRef:
   name: edit
 subjects:
   - kind: Group
-    name: <replace-with-an-aad-group-object-id-for-this-cluster-role-binding>
+    name: <replace-with-an-entra-group-object-id-for-this-cluster-role-binding>
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -50,4 +50,4 @@ roleRef:
   name: view
 subjects:
   - kind: Group
-    name: <replace-with-an-aad-group-object-id-for-this-cluster-role-binding>
+    name: <replace-with-an-entra-group-object-id-for-this-cluster-role-binding>

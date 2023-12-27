@@ -43,4 +43,4 @@ Now that you have the [prerequisites](./01-prerequisites.md) met, follow the ste
 
 ### Next step
 
-:arrow_forward: [Prep for Azure Active Directory integration](./03-aad.md)
+:arrow_forward: [Prep for Microsoft Entra integration](./03-auth.md)

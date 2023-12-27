@@ -38,7 +38,7 @@ Previously you have configured [workload prerequisites](./07-workload-prerequisi
 
 1. Obtain the identity info needed for installing the Azure App Gateway Ingress Controller.
 
-   > :book: The app team wants to use Azure AD Pod Identity to assign an identity to its ingress controller pod. They will need to obtain identity information such as the user-managed identity resource id and client id for the ingress controller created as part of the cluster prerequisites. When installing the Azure Application Gateway ingress controller, they can provide such information to create the Kubernetes Azure Identity objects.
+   > :book: The app team wants to use Microsoft Entra Workload ID to assign an identity to its ingress controller pod. They will need to obtain identity information such as the user-managed identity resource id and client id for the ingress controller created as part of the cluster prerequisites. When installing the Azure Application Gateway ingress controller, they can provide such information to create the Kubernetes Azure Identity objects.
 
    ```bash
    INGRESS_CONTROLLER_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.appGatewayControllerPrincipalResourceId.value -o tsv)

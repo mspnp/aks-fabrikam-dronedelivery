@@ -8,7 +8,7 @@ To quickly understand how the AKS Fabrikam Drone Delivery expands the AKS Secure
 |-----------------------------------------|-------|----------|
 | Egress restriction using Azure Firewall |  ✅   |    ✅    |
 | Ingress Controller                      |  ✅   |    ✅    |
-| Azure Active Directory Pod Identity     |  ✅   |    ✅    |
+| Microsoft Entra Workload ID             |  ✅   |    ✅    |
 | Resource Limits                         |  ✅   |    ✅    |
 | Other Infrastructure aspects            |  ✅   |    ✅    |
 | Zero Trust Network Policies             |  ❌   |    ✅    |
@@ -41,11 +41,11 @@ Throughout the reference implementation, you will see reference to _Fabrikam Dro
 #### Azure platform
 
 * AKS v1.19
-  * System and User [node pool separation](https://docs.microsoft.com/azure/aks/use-system-pools)
-  * [AKS-managed Azure AD](https://docs.microsoft.com/azure/aks/managed-aad)
+  * System and User [node pool separation](https://learn.microsoft.com/azure/aks/use-system-pools)
+  * [AKS-managed Microsoft Entra ID](https://learn.microsoft.com/azure/aks/enable-authentication-microsoft-entra-id)
   * Managed Identities
   * Azure CNI
-  * [Azure Monitor for containers](https://docs.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
+  * [Azure Monitor for containers](https://learn.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
 * Azure Virtual Networks (hub-spoke)
 * Azure Application Gateway (WAF)
 * AKS-managed Internal Load Balancers
@@ -59,7 +59,7 @@ Throughout the reference implementation, you will see reference to _Fabrikam Dro
 
 * [Flux GitOps Operator](https://fluxcd.io)
 * [Azure Application Gateway Ingress Controller](https://github.com/Azure/application-gateway-kubernetes-ingress)
-* [Azure AD Pod Identity](https://github.com/Azure/aad-pod-identity)
+* [Microsoft Entra Workload ID](https://github.com/Azure/aad-pod-identity)
 * [Azure KeyVault Secret Store CSI Provider](https://github.com/Azure/secrets-store-csi-driver-provider-azure)
 * [Kured](https://docs.microsoft.com/azure/aks/node-updates-kured)
 
@@ -71,7 +71,7 @@ Here are the required sections to follow for deploying the AKS Fabrikam Drone De
 
 * [ ] [Install and meet the prerequisites](./01-prerequisites.md)
 * [ ] [Procure client-facing and AKS Ingress Controller TLS certificates](./02-ca-certificates.md)
-* [ ] [Plan your Azure Active Directory integration](./03-aad.md)
+* [ ] [Plan your Microsoft Entra integration](./03-auth.md)
 * [ ] [Build the hub-spoke network](./04-networking.md)
 * [ ] [Deploy the AKS cluster and supporting services](./05-aks-cluster.md)
 * [ ] [Place the cluster under GitOps management](./06-gitops.md)
