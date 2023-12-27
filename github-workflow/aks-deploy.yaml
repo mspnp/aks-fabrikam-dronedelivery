@@ -22,7 +22,7 @@
 #    │   ├── kured-1.4.0-dockerhub.yaml
 #    │   ├── ns-backend-dev.yaml
 #    │   ├── ns-cluster-baseline-settings.yaml
-#    │   └── user-facing-cluster-role-aad-group.yaml
+#    │   └── user-facing-cluster-role-entra-group.yaml
 #    └── cluster-stamp.json
 #
 # 2. Ensure you have followed the prior sections before deploying this AKS cluster. This way, you will be capable of setting:
