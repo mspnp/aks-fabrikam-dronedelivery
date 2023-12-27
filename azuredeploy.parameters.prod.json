@@ -11,10 +11,10 @@
     "targetVnetResourceId": {
       "value": "/subscriptions/[subscription id]/resourceGroups/rg-enterprise-networking-spokes/providers/Microsoft.Network/virtualNetworks/vnet-hub-spoke-BU0001A0008-00"
     },
-    "k8sRbacAadProfileAdminGroupObjectID": {
+    "k8sRbacEntraAdminGroupObjectID": {
       "value": "[guid]"
     },
-    "k8sRbacAadProfileTenantId": {
+    "k8sRbacEntraProfileTenantId": {
       "value": "[guid]"
     },
     "appGatewayListenerCertificate": {

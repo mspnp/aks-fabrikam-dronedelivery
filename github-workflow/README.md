@@ -6,7 +6,7 @@ This cluster, as with any workload, should be managed via an automated deploymen
 
 ## Steps
 
-This workflow file deploys the cluster into an already-existing virtual network and AAD configuration as set up by the steps in the [main README.md file](../README.md).
+This workflow file deploys the cluster into an already-existing virtual network and Microsoft Entra configuration as set up by the steps in the [main README.md file](../README.md).
 
 ## Secrets
 

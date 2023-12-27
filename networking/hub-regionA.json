@@ -482,7 +482,7 @@
                                 },
                                 {
                                     "name": "aad-auth",
-                                    "description": "This address is required for Azure Active Directory authentication.",
+                                    "description": "This address is required for Microsoft Entra authentication.",
                                     "sourceIpGroups": [
                                         "[resourceId('Microsoft.Network/ipGroups', variables('aksIpGroupName'))]"
                                     ],

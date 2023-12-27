@@ -20,13 +20,13 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 2. Retrieve the tenant ID for this tenant. This value is used when deploying the AKS cluster.
 
    ```
-   export K8S_RBAC_AAD_PROFILE_TENANTID=$(az account show --query tenantId --output tsv)
+   export K8S_RBAC_ENTRA_TENANTID=$(az account show --query tenantId --output tsv)
    ```
 
 1. Create the first Microsoft Entra group that will map the Kubernetes Cluster Role Admin. If you already have a security group appropriate for cluster admins, consider using that group and skipping this step. If using your own group, you will need to update group object names throughout the reference implementation.
 
    ```bash
-   export K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID=$(az ad group create --display-name aad-to-dronedelivery-cluster-admin --mail-nickname aad-to-dronedelivery-cluster-admin --query id -o tsv)
+   export K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID=$(az ad group create --display-name dronedelivery-cluster-admin --mail-nickname dronedelivery-cluster-admin --query id -o tsv)
    ```
 
 1. Create a break-glass cluster admin user for the Fabrikam Drone Delivery AKS cluster.
@@ -34,8 +34,8 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
    > :book: The organization knows the value of having a break-glass admin user for their critical infrastructure. The app team requests a cluster admin user, and the Microsoft Entra admin team proceeds with the creation of the user from Microsoft Entra ID.
 
    ```bash
-   export K8S_RBAC_AAD_PROFILE_TENANT_DOMAIN_NAME=$(az ad signed-in-user show --query 'userPrincipalName' -o tsv | cut -d '@' -f 2 | sed 's/\"//')
-   export AKS_ADMIN_OBJECTID=$(az ad user create --display-name=dronedelivery-admin --user-principal-name dronedelivery-admin@${K8S_RBAC_AAD_PROFILE_TENANT_DOMAIN_NAME} --force-change-password-next-sign-in --password ChangeMeDroneDeliveryAdminChangeMe! --query id -o tsv)
+   export K8S_RBAC_ENTRA_TENANT_DOMAIN_NAME=$(az ad signed-in-user show --query 'userPrincipalName' -o tsv | cut -d '@' -f 2 | sed 's/\"//')
+   export AKS_ADMIN_OBJECTID=$(az ad user create --display-name=dronedelivery-admin --user-principal-name dronedelivery-admin@${K8S_RBAC_ENTRA_TENANT_DOMAIN_NAME} --force-change-password-next-sign-in --password ChangeMeDroneDeliveryAdminChangeMe! --query id -o tsv)
    ```
 
 1. Add the new admin user to the new security group to grant the Kubernetes Cluster Admin role.
@@ -47,7 +47,7 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
    >
 
    ```bash
-   az ad group member add --group aad-to-dronedelivery-cluster-admin --member-id $AKS_ADMIN_OBJECTID
+   az ad group member add --group dronedelivery-cluster-admin --member-id $AKS_ADMIN_OBJECTID
    ```
 
    The value stored in the $AKS_ADMIN_OBJECTID is the id of the newly created user. This value is needed when creating the AKS cluster for establishing proper cluster RBAC role bindings.
@@ -56,7 +56,7 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 
    > :book: The team knows there will be more than cluster admins that need group-managed access to the cluster.  Out of the box, Kubernetes has other roles like _admin_, _edit_, and _view_, which can also be mapped to Microsoft Entra groups.
 
-   In the [`user-facing-cluster-role-aad-group.yaml` file](./cluster-baseline-settings/user-facing-cluster-role-aad-group.yaml), you can replace the four `<replace-with-an-aad-group-object-id-for-this-cluster-role-binding>` placeholders with corresponding new or existing AD groups that map to their purpose for this cluster.
+   In the [`user-facing-cluster-role-aad-group.yaml` file](./cluster-baseline-settings/user-facing-cluster-role-aad-group.yaml), you can replace the four `<replace-with-an-entra-group-object-id-for-this-cluster-role-binding>` placeholders with corresponding new or existing AD groups that map to their purpose for this cluster.
 
    :bulb: Alternatively, you can make these group associations to [Azure RBAC roles](https://docs.microsoft.com/azure/aks/manage-azure-rbac). At the time of this writing, this feature is still in _preview_ but will become the preferred way of mapping identities to Kubernetes RBAC roles.
 

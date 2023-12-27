@@ -43,10 +43,10 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 1. Wait for Microsoft Entra propagation of the AKS Fabrikam Drone Delivery 00's user identities.
 
    ```bash
-   until az ad sp show --id ${DELIVERY_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for AAD propagation" && sleep 5; done
-   until az ad sp show --id ${DRONESCHEDULER_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for AAD propagation" && sleep 5; done
-   until az ad sp show --id ${WORKFLOW_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for AAD propagation" && sleep 5; done
-   until az ad sp show --id ${INGRESS_CONTROLLER_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for AAD propagation" && sleep 5; done
+   until az ad sp show --id ${DELIVERY_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
+   until az ad sp show --id ${DRONESCHEDULER_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
+   until az ad sp show --id ${WORKFLOW_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
+   until az ad sp show --id ${INGRESS_CONTROLLER_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
    ```
 
 1. Get the AKS cluster spoke VNet resource ID.
@@ -78,7 +78,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
    ```bash
    # [This takes about 15 minutes.]
-   az deployment group create --resource-group rg-shipping-dronedelivery --template-file cluster-stamp.json --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacAadProfileAdminGroupObjectID=$K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID k8sRbacAadProfileTenantId=$K8S_RBAC_AAD_PROFILE_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=$DELIVERY_ID_NAME  droneSchedulerIdName=$DRONESCHEDULER_ID_NAME workflowIdName=$WORKFLOW_ID_NAME ingressControllerIdName=$INGRESS_CONTROLLER_ID_NAME ingressControllerPrincipalId=$INGRESS_CONTROLLER_ID_PRINCIPAL_ID acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME
+   az deployment group create --resource-group rg-shipping-dronedelivery --template-file cluster-stamp.json --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacEntraAdminGroupObjectID=$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID k8sRbacEntraProfileTenantId=$K8S_RBAC_ENTRA_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=$DELIVERY_ID_NAME  droneSchedulerIdName=$DRONESCHEDULER_ID_NAME workflowIdName=$WORKFLOW_ID_NAME ingressControllerIdName=$INGRESS_CONTROLLER_ID_NAME ingressControllerPrincipalId=$INGRESS_CONTROLLER_ID_PRINCIPAL_ID acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME
    ```
 
    > Alternatively, you could have updated the [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file and deployed as above, using `--parameters "@azuredeploy.parameters.prod.json"` instead of the individual key-value pairs.
@@ -141,8 +141,8 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
            sed "s#<resource-group-name>#rg-shipping-dronedelivery#g" | \
            sed "s#<geo-redundancy-location>#centralus#g" | \
            sed "s#<cluster-spoke-vnet-resource-id>#$TARGET_VNET_RESOURCE_ID#g" | \
-           sed "s#<tenant-id-with-user-admin-permissions>#$K8S_RBAC_AAD_PROFILE_TENANTID#g" | \
-           sed "s#<azure-ad-aks-admin-group-object-id>#$K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID#g" | \
+           sed "s#<tenant-id-with-user-admin-permissions>#$K8S_RBAC_ENTRA_TENANTID#g" | \
+           sed "s#<azure-ad-aks-admin-group-object-id>#$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID#g" | \
            sed "s#<delivery-id-name>#$DELIVERY_ID_NAME#g" | \
            sed "s#<delivery-principal-id>#$DELIVERY_ID_PRINCIPAL_ID#g" | \
            sed "s#<dronescheduler-id-name>#$DRONESCHEDULER_ID_NAME#g" | \

@@ -8,13 +8,13 @@
                 "description": "The regional network spoke VNet Resource ID that the cluster will be joined to"
             }
         },
-        "k8sRbacAadProfileAdminGroupObjectID": {
+        "k8sRbacEntraAdminGroupObjectID": {
             "type": "string",
             "metadata": {
                 "description": "Group that has admin access to this cluster"
             }
         },
-        "k8sRbacAadProfileTenantId": {
+        "k8sRbacEntraProfileTenantId": {
             "type": "string",
             "metadata": {
                 "description": "This is tennant where the ServerAppId, ServerAppSecret, ClientAppId all reside"
@@ -666,7 +666,7 @@
                             "type": "Microsoft.Authorization/roleAssignments",
                             "name": "[guid(resourceGroup().id)]",
                             "apiVersion": "2018-09-01-preview",
-                            "comments": "It is required to grant the AKS cluster with Virtual Machine Contributor role permissions over the cluster infrastructure resource group to work with Managed Identities and aad-pod-identity. Otherwise MIC component fails while attempting to update MSI on VMSS cluster nodes",
+                            "comments": "It is required to grant the AKS cluster with Virtual Machine Contributor role permissions over the cluster infrastructure resource group to work with Managed Identities and workload identities. Otherwise MIC component fails while attempting to update MSI on VMSS cluster nodes",
                             "properties": {
                                 "roleDefinitionId": "[variables('virtualMachineContributorRole')]",
                                 "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-03-01').identityProfile.kubeletidentity.objectId]",
@@ -925,9 +925,9 @@
                 "aadProfile": {
                     "managed": true,
                     "adminGroupObjectIDs": [
-                        "[parameters('k8sRbacAadProfileAdminGroupObjectID')]"
+                        "[parameters('k8sRbacEntraAdminGroupObjectID')]"
                     ],
-                    "tenantID": "[parameters('k8sRbacAadProfileTenantId')]"
+                    "tenantID": "[parameters('k8sRbacEntraProfileTenantId')]"
                 },
                 "autoScalerProfile": {
                     "scan-interval": "10s",

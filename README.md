@@ -41,11 +41,11 @@ Throughout the reference implementation, you will see reference to _Fabrikam Dro
 #### Azure platform
 
 * AKS v1.19
-  * System and User [node pool separation](https://docs.microsoft.com/azure/aks/use-system-pools)
-  * [AKS-managed Microsoft Entra ID](https://docs.microsoft.com/azure/aks/managed-aad)
+  * System and User [node pool separation](https://learn.microsoft.com/azure/aks/use-system-pools)
+  * [AKS-managed Microsoft Entra ID](https://learn.microsoft.com/azure/aks/enable-authentication-microsoft-entra-id)
   * Managed Identities
   * Azure CNI
-  * [Azure Monitor for containers](https://docs.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
+  * [Azure Monitor for containers](https://learn.microsoft.com/azure/azure-monitor/insights/container-insights-overview)
 * Azure Virtual Networks (hub-spoke)
 * Azure Application Gateway (WAF)
 * AKS-managed Internal Load Balancers
