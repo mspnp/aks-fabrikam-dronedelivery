@@ -71,7 +71,7 @@ Here are the required sections to follow for deploying the AKS Fabrikam Drone De
 
 * [ ] [Install and meet the prerequisites](./01-prerequisites.md)
 * [ ] [Procure client-facing and AKS Ingress Controller TLS certificates](./02-ca-certificates.md)
-* [ ] [Plan your Microsoft Entra integration](./03-aad.md)
+* [ ] [Plan your Microsoft Entra integration](./03-auth.md)
 * [ ] [Build the hub-spoke network](./04-networking.md)
 * [ ] [Deploy the AKS cluster and supporting services](./05-aks-cluster.md)
 * [ ] [Place the cluster under GitOps management](./06-gitops.md)
