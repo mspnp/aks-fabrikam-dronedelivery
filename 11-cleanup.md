@@ -22,7 +22,7 @@ After you are done exploring your deployed [AKS secure baseline cluster](./), yo
    az keyvault purge --name ${KEYVAULT_NAME} --location eastus2
    ```
 
-1. If any temporary changes were made to Azure AD or Azure RBAC permissions, consider removing those as well.
+1. If any temporary changes were made to Microsoft Entra ID or Azure RBAC permissions, consider removing those as well.
 
 1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name] `.
 

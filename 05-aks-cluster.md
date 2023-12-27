@@ -40,7 +40,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    INGRESS_CONTROLLER_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $INGRESS_CONTROLLER_ID_NAME --query principalId -o tsv)
    ```
 
-1. Wait for Azure AD propagation of the AKS Fabrikam Drone Delivery 00's user identities.
+1. Wait for Microsoft Entra propagation of the AKS Fabrikam Drone Delivery 00's user identities.
 
    ```bash
    until az ad sp show --id ${DELIVERY_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for AAD propagation" && sleep 5; done
