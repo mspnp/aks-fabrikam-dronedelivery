@@ -15,9 +15,9 @@ kind: Ingress
 metadata:
   name: {{ $relname }}-ingress
   annotations:
-    kubernetes.io/ingress.class: azure/application-gateway
-    kubernetes.io/ingress.allow-http: "false"
+    kubernetes.io/ingress.allow-http: "true"
     appgw.ingress.kubernetes.io/appgw-ssl-certificate: "appgw-ssl-certificate"
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/api/deliveryrequests"
     # TODO: modify ingestion container to start listening https instead (dont forget
     # probes as they override the appgw probes cfg). Then uncomment the following
     # annotations to have e2e TLS: https://github.com/Azure/application-gateway-kubernetes-ingress/issues/1048
@@ -27,6 +27,7 @@ metadata:
     # appgw.ingress.kubernetes.io/hostname-extension: "*.aks-agic.fabrikam.com"
     # appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: "root-cert-wildcard-aks-ingress-fabrikam"
 spec:
+  ingressClassName: azure-application-gateway
   tls:
   {{- range .Values.ingress.hosts }}
   - hosts:
@@ -41,24 +42,15 @@ spec:
     http:
       paths:
       {{ if .path }}
-      - path: {{ printf "%s/%s/" .path $appversion }}api/deliveryrequests*
+      - path: {{ printf "%s/%s/" .path $appversion }}api/deliveryrequests
         pathType: Prefix
       {{ else }}
-      - path: {{ $defaultversionedpath }}api/deliveryrequests*
+      - path: {{ $defaultversionedpath }}api/deliveryrequests
         pathType: Prefix
       {{ end }}
         backend:
           service:
             name: "{{ .serviceName }}-{{ $svcversion }}"
             port:
-              number: 80
-      {{ if (eq $appversion "v0.1.0") }}
-      - path: {{ default "/" .path }}api/deliveryrequests*
-        pathType: Prefix
-        backend:
-          service:
-            name: "{{ .serviceName }}"
-            port:
-              number: 80
-      {{ end }}
+              name: http
   {{ end }}

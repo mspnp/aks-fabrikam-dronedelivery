@@ -12,7 +12,7 @@ exports:
     resources:
       requests:
         cpu: 110m
-        memory: 512Mi
+        memory: 1024Mi
       limits:
         cpu: 194m
-        memory: 512Mi
+        memory: 1024Mi

@@ -7,14 +7,17 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
 1. Login into the Azure subscription that you'll be deploying the AKS cluster into.
 
    > :book: The networking team logins into the Azure subscription that will contain the regional hub. At Fabrikam Drone Delivery, all of their regional hubs are in the same, centrally-managed subscription.
-   
+
    ```bash
    az login
+
+   # if you have several subscriptions, select one
+   # az account set -s <subscription id>
    ```
 
 1. Create a resource group for the hub network.
 
-   > :book: The networking team has all their regional networking hubs in the following resource group. The group's default location does not matter, as it's not tied to the resource locations. (This resource group would have already existed.)
+> :book: The networking team has all their regional networking hubs in the following resource group. The group's default location does not matter, as it's not tied to the resource locations. (This resource group would have already existed.)
 
    ```bash
    az group create --name rg-enterprise-networking-hubs --location centralus
@@ -40,16 +43,14 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
 
    ```bash
    # [This takes about five minutes to run.]
-   az deployment group create --resource-group rg-enterprise-networking-hubs --template-file networking/hub-default.json --parameters location=eastus2
+   az deployment group create --resource-group rg-enterprise-networking-hubs --template-file networking/hub-default.bicep --parameters location=eastus2
    ```
 
 1. Create the spoke network into which the AKS cluster and adjacent resources will be deployed.
 
-   > :book:  The networking team receives a request from an app team in the shipping business unit for a spoke network to house their new AKS-based application (Internally known as The Drone Delivery application). The network team talks with the app team to understand their requirements and align those needs with Microsoft's best practices to secure AKS cluster deployment. They capture those specific requirements, deploy the spoke, align them to those specs, and connect it to the matching regional hub.
+   > :book: The networking team receives a request from an app team in the shipping business unit for a spoke network to house their new AKS-based application (Internally known as The Drone Delivery application). The network team talks with the app team to understand their requirements and align those needs with Microsoft's best practices to secure AKS cluster deployment. They capture those specific requirements, deploy the spoke, align them to those specs, and connect it to the matching regional hub.
 
    First, get the id of the hub network. This value is used to create peered virtual networks between the hub and spoke networks.
-
-   
 
    ```bash
    HUB_VNET_ID=$(az deployment group show -g rg-enterprise-networking-hubs -n hub-default --query properties.outputs.hubVnetId.value -o tsv)
@@ -59,14 +60,14 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
 
    ```bash
    # [This takes about ten minutes to run.]
-   az deployment group create --resource-group rg-enterprise-networking-spokes --template-file networking/spoke-shipping-dronedelivery.json --parameters location=eastus2 hubVnetResourceId="${HUB_VNET_ID}"
+   az deployment group create --resource-group rg-enterprise-networking-spokes --template-file networking/spoke-shipping-dronedelivery.bicep --parameters location=eastus2 hubVnetResourceId="${HUB_VNET_ID}"
    ```
 
    The spoke creation will emit the following:
 
-     * `appGwPublicIpAddress` - The Public IP address of the Azure Application Gateway (WAF) that will receive traffic for your workload.
-     * `clusterVnetResourceId` - The resource ID of the VNet that the cluster will land in. E.g. `/subscriptions/[subscription id]/resourceGroups/rg-enterprise-networking-spokes/providers/Microsoft.Network/virtualNetworks/vnet-hub-spoke-shipping-dronedelivery`
-     * `nodepoolSubnetResourceIds` - An array containing the subnet resource IDs of the AKS node pools in the spoke. E.g. `["/subscriptions/[subscription id]/resourceGroups/rg-enterprise-networking-spokes/providers/Microsoft.Network/virtualNetworks/vnet-hub-spoke-shipping-dronedelivery/subnets/snet-clusternodes"]`
+   - `appGwPublicIpAddress` - The Public IP address of the Azure Application Gateway (WAF) that will receive traffic for your workload.
+   - `clusterVnetResourceId` - The resource ID of the VNet that the cluster will land in. E.g. `/subscriptions/[subscription id]/resourceGroups/rg-enterprise-networking-spokes/providers/Microsoft.Network/virtualNetworks/vnet-hub-spoke-shipping-dronedelivery`
+   - `nodepoolSubnetResourceIds` - An array containing the subnet resource IDs of the AKS node pools in the spoke. E.g. `["/subscriptions/[subscription id]/resourceGroups/rg-enterprise-networking-spokes/providers/Microsoft.Network/virtualNetworks/vnet-hub-spoke-shipping-dronedelivery/subnets/snet-clusternodes"]`
 
 1. Update the shared, regional hub deployment to account for the requirements of the spoke.
 
@@ -82,7 +83,7 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
 
    ```bash
    # [This takes about three minutes to run.]
-   az deployment group create --resource-group rg-enterprise-networking-hubs --template-file networking/hub-regionA.json --parameters location=eastus2 nodepoolSubnetResourceIds="['${NODEPOOL_SUBNET_RESOURCEIDS}']" serviceTagsLocation=EastUS2
+   az deployment group create --resource-group rg-enterprise-networking-hubs --template-file networking/hub-regionA.bicep --parameters location=eastus2 nodepoolSubnetResourceIds="['${NODEPOOL_SUBNET_RESOURCEIDS}']" serviceTagsLocation=EastUS2
    ```
 
    > :book: At this point, the networking team has delivered a spoke in which The Drone Delivery's app team can deploy their AKS cluster. The networking team provides the necessary information to the app team to reference in their Infrastructure-as-Code artifacts.

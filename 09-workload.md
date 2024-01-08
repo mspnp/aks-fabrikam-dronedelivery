@@ -42,6 +42,12 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    az acr update --name $ACR_NAME --set networkRuleSet.defaultAction="Allow"
    ```
 
+1. Get the OIDC Issuer URL
+
+   ```bash
+   export AKS_OIDC_ISSUER="$(az aks show -n $AKS_CLUSTER_NAME -g rg-shipping-dronedelivery --query "oidcIssuerProfile.issuerUrl" -otsv)"
+   ```
+
 1. Deploy the Delivery service application.
 
    Build the Delivery service.
@@ -58,31 +64,36 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    DELIVERY_DATABASE_NAME="${DELIVERY_COSMOSDB_NAME}-db"
    DELIVERY_COLLECTION_NAME="${DELIVERY_COSMOSDB_NAME}-col"
    DELIVERY_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryPrincipalResourceId.value -o tsv)
-   DELIVERY_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DELIVERY_ID_NAME --query clientId -o tsv)
+   DELIVERY_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-delivery --query clientId -o tsv)
    ```
 
    Deploy the Delivery service.
 
    ```bash
+
+   #Setup your managed identity to trust your Kubernetes service account
+   az identity federated-credential create --name credential-for-delivery --identity-name uid-delivery --resource-group rg-shipping-dronedelivery --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:backend-dev:delivery-sa-v0.1.0
+
+
    helm package ./charts/delivery/ -u
    helm install delivery-v0.1.0-dev delivery-v0.1.0.tgz \
-        --set image.tag=0.1.0 \
-        --set image.repository=delivery \
-        --set dockerregistry=$ACR_SERVER \
-        --set ingress.hosts[0].name=dronedelivery.fabrikam.com \
-        --set ingress.hosts[0].serviceName=delivery \
-        --set networkPolicy.egress.external.enabled=true \
-        --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
-        --set networkPolicy.ingress.externalSubnet.enabled=true \
-        --set networkPolicy.ingress.externalSubnet.subnetPrefix=$GATEWAY_SUBNET_PREFIX \
-        --set identity.clientid=$DELIVERY_PRINCIPAL_CLIENT_ID \
-        --set identity.resourceid=$DELIVERY_PRINCIPAL_RESOURCE_ID \
-        --set cosmosdb.id=$DELIVERY_DATABASE_NAME \
-        --set cosmosdb.collectionid=$DELIVERY_COLLECTION_NAME \
-        --set keyvault.uri=$DELIVERY_KEYVAULT_URI \
-        --set reason="Initial deployment" \
-        --set envs.dev=true \
-        --namespace backend-dev
+      --set image.tag=0.1.0 \
+      --set image.repository=delivery \
+      --set dockerregistry=$ACR_SERVER \
+      --set ingress.hosts[0].name=dronedelivery.fabrikam.com \
+      --set ingress.hosts[0].serviceName=delivery \
+      --set networkPolicy.egress.external.enabled=true \
+      --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
+      --set networkPolicy.ingress.externalSubnet.enabled=true \
+      --set networkPolicy.ingress.externalSubnet.subnetPrefix=$GATEWAY_SUBNET_PREFIX \
+      --set identity.clientid=$DELIVERY_PRINCIPAL_CLIENT_ID \
+      --set identity.serviceAccountName=delivery-sa-v0.1.0 \
+      --set cosmosdb.id=$DELIVERY_DATABASE_NAME \
+      --set cosmosdb.collectionid=$DELIVERY_COLLECTION_NAME \
+      --set keyvault.uri=$DELIVERY_KEYVAULT_URI \
+      --set reason="Initial deployment" \
+      --set envs.dev=true \
+      --namespace backend-dev
    ```
 
    Verify the delivery service pod is running.
@@ -112,23 +123,23 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    ```bash
    helm package ./charts/ingestion/ -u
    helm install ingestion-v0.1.0-dev ingestion-v0.1.0.tgz \
-        --set image.tag=0.1.0 \
-        --set image.repository=ingestion \
-        --set dockerregistry=$ACR_SERVER \
-        --set ingress.hosts[0].name=dronedelivery.fabrikam.com \
-        --set ingress.hosts[0].serviceName=ingestion \
-        --set networkPolicy.egress.external.enabled=true \
-        --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
-        --set networkPolicy.ingress.externalSubnet.enabled=true \
-        --set networkPolicy.ingress.externalSubnet.subnetPrefix=$GATEWAY_SUBNET_PREFIX \
-        --set secrets.appinsights.ikey=${AI_IKEY} \
-        --set secrets.queue.keyname=IngestionServiceAccessKey \
-        --set secrets.queue.keyvalue=${INGESTION_ACCESS_KEY_VALUE} \
-        --set secrets.queue.name=${INGESTION_QUEUE_NAME} \
-        --set secrets.queue.namespace=${INGESTION_QUEUE_NAMESPACE} \
-        --set reason="Initial deployment" \
-        --set envs.dev=true \
-        --namespace backend-dev
+         --set image.tag=0.1.0 \
+         --set image.repository=ingestion \
+         --set dockerregistry=$ACR_SERVER \
+         --set ingress.hosts[0].name=dronedelivery.fabrikam.com \
+         --set ingress.hosts[0].serviceName=ingestion \
+         --set networkPolicy.egress.external.enabled=true \
+         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
+         --set networkPolicy.ingress.externalSubnet.enabled=true \
+         --set networkPolicy.ingress.externalSubnet.subnetPrefix=$GATEWAY_SUBNET_PREFIX \
+         --set secrets.appinsights.ikey=${AI_IKEY} \
+         --set secrets.queue.keyname=IngestionServiceAccessKey \
+         --set secrets.queue.keyvalue=${INGESTION_ACCESS_KEY_VALUE} \
+         --set secrets.queue.name=${INGESTION_QUEUE_NAME} \
+         --set secrets.queue.namespace=${INGESTION_QUEUE_NAMESPACE} \
+         --set reason="Initial deployment" \
+         --set envs.dev=true \
+         --namespace backend-dev
    ```
 
    Verify the pod is running.
@@ -148,70 +159,36 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the workflow app
 
    ```bash
-   export WORKFLOW_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.workflowPrincipalResourceId.value -o tsv)
-   export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $WORKFLOW_ID_NAME --query clientId -o tsv)
+   export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-workflow --query clientId -o tsv)
    export WORKFLOW_KEYVAULT_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.workflowKeyVaultName.value -o tsv)
    ```
 
-   Create the Workflows's Secret Provider Class resource
-
-   ```bash
-   cat <<EOF | kubectl apply -f -
-   apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
-   kind: SecretProviderClass
-   metadata:
-     name: workflow-secrets-csi-akv
-     namespace: backend-dev
-   spec:
-     provider: azure
-     parameters:
-       usePodIdentity: "true"
-       keyvaultName: "${WORKFLOW_KEYVAULT_NAME}"
-       objects:  |
-         array:
-           - |
-             objectName: QueueName
-             objectAlias: QueueName
-             objectType: secret
-           - |
-             objectName: QueueEndpoint
-             objectAlias: QueueEndpoint
-             objectType: secret
-           - |
-             objectName: QueueAccessPolicyName
-             objectAlias: QueueAccessPolicyName
-             objectType: secret
-           - |
-             objectName: QueueAccessPolicyKey
-             objectAlias: QueueAccessPolicyKey
-             objectType: secret
-           - |
-             objectName: ApplicationInsights--InstrumentationKey
-             objectAlias: ApplicationInsights--InstrumentationKey
-             objectType: secret
-       tenantId: "${TENANT_ID}"
-   EOF
-   ```
 
    Deploy the Workflow service.
 
    ```bash
+   # Setup your managed identity to trust your Kubernetes service account
+   az identity federated-credential create --name credential-for-workflow --identity-name uid-workflow --resource-group rg-shipping-dronedelivery --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:backend-dev:workflow-sa-v0.1.0
+
    helm package ./charts/workflow/ -u && \
    helm install workflow-v0.1.0-dev workflow-v0.1.0.tgz \
-        --set image.tag=0.1.0 \
-        --set image.repository=workflow \
-        --set dockerregistry=$ACR_SERVER \
-        --set identity.clientid=$WORKFLOW_PRINCIPAL_CLIENT_ID \
-        --set identity.resourceid=$WORKFLOW_PRINCIPAL_RESOURCE_ID \
-        --set networkPolicy.egress.external.enabled=true \
-        --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
-        --set keyvault.name=$WORKFLOW_KEYVAULT_NAME \
-        --set keyvault.resourcegroup=rg-shipping-dronedelivery \
-        --set keyvault.subscriptionid=$SUBSCRIPTION_ID \
-        --set keyvault.tenantid=$TENANT_ID \
-        --set reason="Initial deployment" \
-        --set envs.dev=true \
-        --namespace backend-dev
+      --set image.tag=0.1.0 \
+      --set image.repository=workflow \
+      --set dockerregistry=$ACR_SERVER \
+      --set identity.clientid=$WORKFLOW_PRINCIPAL_CLIENT_ID \
+      --set identity.serviceAccountName=workflow-sa-v0.1.0 \
+      --set identity.tenantId=$TENANT_ID \
+      --set networkPolicy.egress.external.enabled=true \
+      --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
+      --set keyvault.name=$WORKFLOW_KEYVAULT_NAME \
+      --set keyvault.resourcegroup=rg-shipping-dronedelivery \
+      --set keyvault.tenantid=$TENANT_ID \
+      --set reason="Initial deployment" \
+      --set envs.dev=true \
+      --set serviceuri.delivery="http://delivery-v010/api/Deliveries/" \
+      --set serviceuri.drone="http://dronescheduler-v010/api/DroneDeliveries/" \
+      --set serviceuri.package="http://package-v010/api/packages/" \
+      --namespace backend-dev
    ```
 
    Verify the pod is running.
@@ -235,21 +212,22 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    export DRONESCHEDULER_COSMOSDB_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
    export DRONESCHEDULER_DATABASE_NAME="invoicing"
    export DRONESCHEDULER_COLLECTION_NAME="utilization"
-   export DRONESCHEDULER_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.droneSchedulerPrincipalResourceId.value -o tsv) && \
-   export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n $DRONESCHEDULER_ID_NAME --query clientId -o tsv)
-   export DRONESCHEDULER_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
+   export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-dronescheduler --query clientId -o tsv)
    ```
 
    Deploy the DroneScheduler service.
 
    ```bash
+   # Setup your managed identity to trust your Kubernetes service account
+   az identity federated-credential create --name credential-for-dronescheduler --identity-name uid-dronescheduler --resource-group rg-shipping-dronedelivery --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:backend-dev:dronescheduler-sa-v0.1.0
+
    helm package ./charts/dronescheduler/ -u && \
    helm install dronescheduler-v0.1.0-dev dronescheduler-v0.1.0.tgz \
         --set image.tag=0.1.0 \
         --set image.repository=dronescheduler \
         --set dockerregistry=$ACR_SERVER \
         --set identity.clientid=$DRONESCHEDULER_PRINCIPAL_CLIENT_ID \
-        --set identity.resourceid=$DRONESCHEDULER_PRINCIPAL_RESOURCE_ID \
+        --set identity.serviceAccountName=dronescheduler-sa-v0.1.0 \
         --set networkPolicy.egress.external.enabled=true \
         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
         --set keyvault.uri=$DRONESCHEDULER_KEYVAULT_URI \
@@ -280,7 +258,6 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    export PACKAGE_DATABASE_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.packageMongoDbName.value -o tsv)
    export PACKAGE_CONNECTION=$(az cosmosdb keys list --type connection-strings --name $PACKAGE_DATABASE_NAME --resource-group rg-shipping-dronedelivery --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
    export PACKAGE_COLLECTION_NAME=packages
-   export PACKAGE_INGRESS_TLS_SECRET_NAME=package-ingress-tls
    ```
 
    Deploy the Package service

@@ -6,7 +6,6 @@
 ###################################################################################################
 # Dronescheduler allow egress traffic
 ###################################################################################################
-
 {{- if .Values.networkPolicy.egress.enabled }}
 {{- $fullname := include "dronescheduler.fullname" . | replace "." "" }}
 apiVersion: networking.k8s.io/v1

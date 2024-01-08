@@ -11,8 +11,8 @@ dockerregistry:
 
 identity:
   clientid:
-  resourceid:
-
+  serviceAccountName:
+  tenantId:
 
 image:
   repository:
@@ -25,9 +25,9 @@ reason: unknown
 
 
 serviceuri:
-  delivery: http://delivery/api/Deliveries/
-  drone: http://dronescheduler/api/DroneDeliveries/
-  package: http://package/api/packages/
+  delivery:
+  drone:
+  package:
 
 servicerequest:
   maxretries: 3
