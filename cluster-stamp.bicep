@@ -57,6 +57,14 @@ param ingressControllerIdName string
 @description('the name of the Azure Container Registry')
 param acrName string
 
+@description('Your cluster will be bootstrapped from this git repo.')
+@minLength(9)
+param gitOpsBootstrappingRepoHttpsUrl string = 'https://github.com/mspnp/aks-fabrikam-dronedelivery.git'
+
+@description('You cluster will be bootstrapped from this branch in the identified git repo.')
+@minLength(1)
+param gitOpsBootstrappingRepoBranch string = 'main'
+
 @allowed([
   'dev'
 ])
@@ -1364,6 +1372,7 @@ resource _42b8ef37_b724_4e24_bbc8_7a7708edfe00PolicyAssigment 'Microsoft.Authori
           'gatekeeper-system'
           'azure-arc'
           'cluster-baseline-settings'
+          'flux-system'
         ]
       }
       effect: {
@@ -1385,6 +1394,7 @@ resource _1a5b4dca_0b6f_4cf5_907c_56316bc1bf3dPolicyAssigment 'Microsoft.Authori
           'gatekeeper-system'
           'azure-arc'
           'cluster-baseline-settings'
+          'flux-system'
         ]
       }
       effect: {
@@ -1406,6 +1416,7 @@ resource _3fc4dc25_5baf_40d8_9b05_7fe74c1bc64ePolicyAssigment 'Microsoft.Authori
           'gatekeeper-system'
           'azure-arc'
           'cluster-baseline-settings'
+          'flux-system'
         ]
       }
       effect: {
@@ -1427,6 +1438,7 @@ resource df49d893_a74c_421d_bc95_c663042e5b80PolicyAssigment 'Microsoft.Authoriz
           'gatekeeper-system'
           'azure-arc'
           'cluster-baseline-settings'
+          'flux-system'
         ]
       }
       effect: {
@@ -1454,6 +1466,7 @@ resource e345eecc_fa47_480f_9e88_67dcc122b164PolicyAssigment 'Microsoft.Authoriz
           'gatekeeper-system'
           'azure-arc'
           'cluster-baseline-settings'
+          'flux-system'
         ]
       }
       effect: {
@@ -1478,6 +1491,7 @@ resource febd0533_8e55_448f_b837_bd0e06f16469PolicyAssigment 'Microsoft.Authoriz
           'gatekeeper-system'
           'azure-arc'
           'cluster-baseline-settings'
+          'flux-system'
         ]
       }
       effect: {
@@ -1569,6 +1583,76 @@ resource ingressControllerIdName_resourcegroup_environmentName_id 'Microsoft.Aut
     roleDefinitionId: readerRole
     principalId: cluster.properties.addonProfiles.ingressApplicationGateway.identity.objectId
   }
+}
+
+
+// Ensures that flux add-on (extension) is installed.
+resource clusterFluxExtension 'Microsoft.KubernetesConfiguration/extensions@2021-09-01' = {
+  scope: cluster
+  name: 'flux'
+  properties: {
+    extensionType: 'microsoft.flux'
+    autoUpgradeMinorVersion: true
+    releaseTrain: 'Stable'
+    scope: {
+      cluster: {
+        releaseNamespace: 'flux-system'
+      }
+    }
+    configurationSettings: {
+      'helm-controller.enabled': 'false'
+      'source-controller.enabled': 'true'
+      'kustomize-controller.enabled': 'true'
+      'notification-controller.enabled': 'true'  // As of testing on 29-Dec, this is required to avoid an error.  Normally it's not a required controller. YMMV
+      'image-automation-controller.enabled': 'false'
+      'image-reflector-controller.enabled': 'false'
+    }
+    configurationProtectedSettings: {}
+  }
+  dependsOn: [
+    nestedACRDeployment
+  ]
+}
+
+// Bootstraps your cluster using content from your repo.
+resource clusterfluxConfiguration 'Microsoft.KubernetesConfiguration/fluxConfigurations@2022-03-01' = {
+  scope: cluster
+  name: 'bootstrap'
+  properties: {
+    scope: 'cluster'
+    namespace: 'flux-system'
+    sourceKind: 'GitRepository'
+    gitRepository: {
+      url: gitOpsBootstrappingRepoHttpsUrl
+      timeoutInSeconds: 180
+      syncIntervalInSeconds: 300
+      repositoryRef: {
+        branch: gitOpsBootstrappingRepoBranch
+        tag: null
+        semver: null
+        commit: null
+      }
+      sshKnownHosts: ''
+      httpsUser: null
+      httpsCACert: null
+      localAuthRef: null
+    }
+    kustomizations: {
+      unified: {
+        path: './cluster-manifests'
+        dependsOn: []
+        timeoutInSeconds: 300
+        syncIntervalInSeconds: 300
+        retryIntervalInSeconds: 300
+        prune: true
+        force: false
+      }
+    }
+  }
+  dependsOn: [
+    clusterFluxExtension
+    nestedACRDeployment
+  ]
 }
 
 output acrName string = environmentSettings[environmentName].acrName

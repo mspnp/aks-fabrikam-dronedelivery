@@ -561,6 +561,33 @@ resource hubFw 'Microsoft.Network/azureFirewalls@2023-04-01' = {
               ]
               targetFqdns: [
                 'github.com'
+                'api.github.com'
+              ]
+            }
+            {
+              name: 'accompanying-container-registries'
+              description: 'helm, agic, aad pod idenity, and others'
+              sourceIpGroups: [
+                aksIpGroup.id
+              ]
+              protocols: [
+                {
+                  protocolType: 'Https'
+                  port: 443
+                }
+              ]
+              targetFqdns: [
+                '${location}.dp.kubernetesconfiguration.azure.com'
+                'mcr.microsoft.com'
+                'raw.githubusercontent.com'
+                split(environment().resourceManager, '/')[2] // Prevent the linter from getting upset at management.azure.com - https://github.com/Azure/bicep/issues/3080
+                split(environment().authentication.loginEndpoint, '/')[2] // Prevent the linter from getting upset at login.microsoftonline.com
+                '*.blob.${environment().suffixes.storage}' // required for the extension installer to download the helm chart install flux. This storage account is not predictable, but does look like eusreplstore196 for example.
+                'azurearcfork8s.azurecr.io' // required for a few of the images installed by the extension.
+                '*.docker.io' // Only required if you use the default bootstrapping manifests included in this repo.
+                '*.docker.com' // Only required if you use the default bootstrapping manifests included in this repo.
+                'ghcr.io' // Only required if you use the default bootstrapping manifests included in this repo. Kured is sourced from here by default.
+                'pkg-containers.githubusercontent.com' // Only required if you use the default bootstrapping manifests included in this repo. Kured is sourced from here by default.
               ]
             }
           ]
