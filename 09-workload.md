@@ -45,6 +45,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 1. Get the OIDC Issuer URL
 
    ```bash
+   #  A Kubernetes token is issued and OIDC federation enables Kubernetes applications to access Azure resources securely with Microsoft Entra ID based on annotated service accounts.
    export AKS_OIDC_ISSUER="$(az aks show -n $AKS_CLUSTER_NAME -g rg-shipping-dronedelivery --query "oidcIssuerProfile.issuerUrl" -otsv)"
    ```
 
