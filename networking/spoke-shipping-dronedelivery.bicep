@@ -163,7 +163,7 @@ resource akvPrivateDnsZonesName_Microsoft_Network_virtualNetworks_clusterVNet 'M
   }
 }
 
-resource pip_orgAppId_00 'Microsoft.Network/publicIpAddresses@2023-04-01' = {
+resource pipOrgAppId00 'Microsoft.Network/publicIpAddresses@2023-04-01' = {
   name: 'pip-${orgAppId}-00'
   location: location
   sku: {
@@ -185,6 +185,6 @@ output clusterVnetResourceId string = clusterVNet.id
 output nodepoolSubnetResourceIds array = [
   resourceId('Microsoft.Network/virtualNetworks/subnets', clusterVNetName, 'snet-clusternodes')
 ]
-output appGwPublicIpAddress string = pip_orgAppId_00.properties.ipAddress
+output appGwPublicIpAddress string = pipOrgAppId00.properties.ipAddress
 output clusterSubnetPrefix string = clusterSubnetPrefix
 output gatewaySubnetPrefix string = gatewaySubnetPrefix

@@ -1,3 +1,4 @@
+@description('The name of the application gateway.')
 param appGatewayName string
 
 @allowed([

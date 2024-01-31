@@ -486,7 +486,6 @@ resource PodFailedScheduledQuery 'Microsoft.insights/scheduledQueryRules@2018-04
   }
   dependsOn: [
     containerInsightsSolution
-    logAnalyticsWorkspace
   ]
 }
 
