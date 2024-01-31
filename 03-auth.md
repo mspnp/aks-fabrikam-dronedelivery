@@ -68,7 +68,7 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 
    In the [`user-facing-cluster-role-entra-group.yaml` file](./cluster-manifests/user-facing-cluster-role-entra-group.yaml), you can replace the four `<replace-with-an-entra-group-object-id-for-this-cluster-role-binding>` placeholders with corresponding new or existing AD groups that map to their purpose for this cluster.
 
-   :bulb: Alternatively, you can make these group associations to [Azure RBAC roles](https://docs.microsoft.com/azure/aks/manage-azure-rbac). At the time of this writing, this feature is still in _preview_ but will become the preferred way of mapping identities to Kubernetes RBAC roles.
+   :bulb: Alternatively, you can make these group associations to [Azure RBAC roles](https://learn.microsoft.com/azure/aks/manage-azure-rbac). At the time of this writing, this feature is still in _preview_ but will become the preferred way of mapping identities to Kubernetes RBAC roles.
 
 ### Next step
 

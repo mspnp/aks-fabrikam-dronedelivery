@@ -480,7 +480,7 @@ resource hubFw 'Microsoft.Network/azureFirewalls@2023-04-01' = {
             }
             {
               name: 'ubuntu-security-patches'
-              description: 'This address lets the Linux cluster nodes download the required security patches and updates per https://docs.microsoft.com/azure/aks/limit-egress-traffic#optional-recommended-fqdn--application-rules-for-aks-clusters.'
+              description: 'This address lets the Linux cluster nodes download the required security patches and updates per https://learn.microsoft.com/azure/aks/limit-egress-traffic#optional-recommended-fqdn--application-rules-for-aks-clusters.'
               sourceIpGroups: [
                 aksIpGroup.id
               ]
@@ -498,7 +498,7 @@ resource hubFw 'Microsoft.Network/azureFirewalls@2023-04-01' = {
             }
             {
               name: 'azure-monitor'
-              description: 'All required for Azure Monitor for containers per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers'
+              description: 'All required for Azure Monitor for containers per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-monitor-for-containers'
               sourceIpGroups: [
                 aksIpGroup.id
               ]
@@ -518,7 +518,7 @@ resource hubFw 'Microsoft.Network/azureFirewalls@2023-04-01' = {
             }
             {
               name: 'azure-policy'
-              description: 'All required for Azure Policy per https://docs.microsoft.com/azure/aks/limit-egress-traffic#azure-policy'
+              description: 'All required for Azure Policy per https://learn.microsoft.com/azure/aks/limit-egress-traffic#azure-policy'
               sourceIpGroups: [
                 aksIpGroup.id
               ]
