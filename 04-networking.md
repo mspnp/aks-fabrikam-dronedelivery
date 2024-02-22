@@ -6,7 +6,7 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
 
 1. Login to the Azure subscription that you'll be deploying the AKS cluster into.
 
-   > :book: The networking team logins into the Azure subscription that will contain the regional hub. At Fabrikam Drone Delivery, all of their regional hubs are in the same, centrally-managed subscription.
+   > :book: The networking team logs into the Azure subscription that will contain the regional hub. At Fabrikam Drone Delivery, all of their regional hubs are in the same, centrally-managed subscription.
 
    ```bash
    az login
