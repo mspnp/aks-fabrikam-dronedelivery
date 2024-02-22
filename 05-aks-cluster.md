@@ -92,9 +92,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
    ```bash
    # [This takes about 15 minutes.]
-   export KUBERNETES_VERSION=$(az aks get-versions -l eastus2 --query "values[?isDefault].version" -o tsv)
-
-   az deployment group create --resource-group rg-shipping-dronedelivery --template-file cluster-stamp.bicep --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacEntraAdminGroupObjectID=$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID k8sRbacEntraProfileTenantId=$K8S_RBAC_ENTRA_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=uid-delivery  droneSchedulerIdName=uid-dronescheduler workflowIdName=uid-workflow ingressControllerIdName=uid-ingestion acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME kubernetesVersion=$KUBERNETES_VERSION
+   az deployment group create --resource-group rg-shipping-dronedelivery --template-file cluster-stamp.bicep --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacEntraAdminGroupObjectID=$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID k8sRbacEntraProfileTenantId=$K8S_RBAC_ENTRA_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=uid-delivery  droneSchedulerIdName=uid-dronescheduler workflowIdName=uid-workflow ingressControllerIdName=uid-ingestion acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME
    ```
 
    > Alternatively, you could have updated the [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file and deployed as above, using `--parameters "@azuredeploy.parameters.prod.json"` instead of the individual key-value pairs.

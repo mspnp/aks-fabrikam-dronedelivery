@@ -37,7 +37,7 @@ param clusterAuthorizedIPRanges array = []
 ])
 param location string = 'westus3'
 
-param kubernetesVersion string = '1.27'
+param kubernetesVersion string = '1.28'
 
 @description('the resource group name of the Azure Container Registry')
 param acrResourceGroupName string
