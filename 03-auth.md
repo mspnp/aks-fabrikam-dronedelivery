@@ -6,7 +6,7 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 
 > :book: The Fabrikam Drone Delivery Microsoft Entra team requires all admin access to AKS clusters be security-group based. This configuration applies to the new AKS cluster that is being built for the Fabrikam Drone Delivery Shipping application under the shipping business unit. Kubernetes RBAC will be Microsoft Entra ID-backed and access granted based on a user's identity or directory group membership.
 
-1. Log in in to Azure.
+1. Log in to Azure.
 
    ```bash
    az login
