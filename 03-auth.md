@@ -6,20 +6,31 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 
 > :book: The Fabrikam Drone Delivery Microsoft Entra team requires all admin access to AKS clusters be security-group based. This configuration applies to the new AKS cluster that is being built for the Fabrikam Drone Delivery Shipping application under the shipping business unit. Kubernetes RBAC will be Microsoft Entra ID-backed and access granted based on a user's identity or directory group membership.
 
-1. Query for and save your Azure subscription tenant id of for the subscription where the AKS cluster will be deployed. This value is used throughout the reference implementation.
+1. Log in to Azure.
+
+   ```bash
+   az login
+
+   # if you have several subscriptions, select one
+   # az account set -s <subscription id>
+   ```
+
+1. Query for and save your Azure subscription tenant ID for the subscription where the AKS cluster will be deployed. This value is used throughout the reference implementation.
 
    ```bash
    export TENANT_ID=$(az account show --query tenantId --output tsv)
    ```
 
 1. Log into the tenant associated with the Microsoft Entra instance that will be used to provide identity services to the AKS cluster.
+
    ```bash
-   az login
-   ```
-
-2. Retrieve the tenant ID for this tenant. This value is used when deploying the AKS cluster.
+   az login -t <tenant associated> --allow-no-subscriptions
 
    ```
+
+1. Retrieve the tenant ID for this tenant. This value is used when deploying the AKS cluster.
+
+   ```bash
    export K8S_RBAC_ENTRA_TENANTID=$(az account show --query tenantId --output tsv)
    ```
 
@@ -42,9 +53,8 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 
    > :book: The recently created break-glass admin user is added to the Kubernetes Cluster Admin group from Microsoft Entra ID. After this step, the Microsoft Entra admin team will have finished the app team's request, and the outcome are:
    >
-   > * the new app team's user admin credentials
-   > * and the Microsoft Entra group object ID
-   >
+   > - the new app team's user admin credentials
+   > - and the Microsoft Entra group object ID
 
    ```bash
    az ad group member add --group dronedelivery-cluster-admin --member-id $AKS_ADMIN_OBJECTID
@@ -54,11 +64,11 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
 
 1. Set up groups to map into other Kubernetes Roles. (Optional, fork required).
 
-   > :book: The team knows there will be more than cluster admins that need group-managed access to the cluster.  Out of the box, Kubernetes has other roles like _admin_, _edit_, and _view_, which can also be mapped to Microsoft Entra groups.
+   > :book: The team knows there will be more than cluster admins that need group-managed access to the cluster. Out of the box, Kubernetes has other roles like _admin_, _edit_, and _view_, which can also be mapped to Microsoft Entra groups.
 
-   In the [`user-facing-cluster-role-entra-group.yaml` file](./cluster-baseline-settings/user-facing-cluster-role-entra-group.yaml), you can replace the four `<replace-with-an-entra-group-object-id-for-this-cluster-role-binding>` placeholders with corresponding new or existing AD groups that map to their purpose for this cluster.
+   In the [`user-facing-cluster-role-entra-group.yaml` file](./cluster-manifests/user-facing-cluster-role-entra-group.yaml), you can replace the four `<replace-with-an-entra-group-object-id-for-this-cluster-role-binding>` placeholders with corresponding new or existing AD groups that map to their purpose for this cluster.
 
-   :bulb: Alternatively, you can make these group associations to [Azure RBAC roles](https://docs.microsoft.com/azure/aks/manage-azure-rbac). At the time of this writing, this feature is still in _preview_ but will become the preferred way of mapping identities to Kubernetes RBAC roles.
+   :bulb: Alternatively, you can make these group associations to [Azure RBAC roles](https://learn.microsoft.com/azure/aks/manage-azure-rbac). At the time of this writing, this feature is still in _preview_ but will become the preferred way of mapping identities to Kubernetes RBAC roles.
 
 ### Next step
 

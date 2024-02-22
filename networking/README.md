@@ -2,7 +2,7 @@
 
 > Note: This is part of the Azure Kubernetes Service (AKS) Baseline Cluster reference implementation. For more information check out the [readme file in the root](../README.md).
 
-These files are the ARM templates used in the deployment of this reference implementation. This reference implementation uses a standard hub-spoke model.
+These files are the Bicep templates used in the deployment of this reference implementation. This reference implementation uses a standard hub-spoke model.
 
 ## Files
 
@@ -18,4 +18,4 @@ See the [AKS baseline Network Topology](./topology.md) for specifics on how this
 
 ## See also
 
-* [Hub-spoke network topology in Azure](https://docs.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke)
+* [Hub-spoke network topology in Azure](https://learn.microsoft.com/azure/architecture/reference-architectures/hybrid-networking/hub-spoke)

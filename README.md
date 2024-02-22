@@ -40,7 +40,7 @@ Throughout the reference implementation, you will see reference to _Fabrikam Dro
 
 #### Azure platform
 
-* AKS v1.19
+* AKS v1.28
   * System and User [node pool separation](https://learn.microsoft.com/azure/aks/use-system-pools)
   * [AKS-managed Microsoft Entra ID](https://learn.microsoft.com/azure/aks/enable-authentication-microsoft-entra-id)
   * Managed Identities

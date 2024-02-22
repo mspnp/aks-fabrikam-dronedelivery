@@ -6,7 +6,6 @@
 ###################################################################################################
 # Dronescheduler allow ingress traffic
 ###################################################################################################
-
 {{- if .Values.networkPolicy.ingress.enabled }}
 {{- $fullname := include "dronescheduler.fullname" . | replace "." "" }}
 apiVersion: networking.k8s.io/v1

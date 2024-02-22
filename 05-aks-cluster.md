@@ -12,9 +12,9 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
    ```bash
    # [This takes less than two  minutes.]
-   az deployment sub create --name workload-stamp-prereqs --location eastus2 --template-file ./workload/workload-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus2
+   az deployment sub create --name workload-stamp-prereqs --location eastus2 --template-file ./workload/workload-stamp-prereqs.bicep --parameters resourceGroupLocation=eastus2
 
-   az deployment sub create --name cluster-stamp-prereqs --location eastus --template-file cluster-stamp-prereqs.json --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus
+   az deployment sub create --name cluster-stamp-prereqs --location eastus --template-file cluster-stamp-prereqs.bicep --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus
    ```
 
 1. Get the AKS Fabrikam Drone Delivery 00's Azure Container Registry resource group name.
@@ -30,23 +30,21 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    > :book: the app team will need to assign roles to the user identities so these are granted appropriate access to specific Azure services.
 
    ```bash
-   DELIVERY_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp-prereqs-dep --query properties.outputs.deliveryIdName.value -o tsv) && \
-   DELIVERY_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $DELIVERY_ID_NAME --query principalId -o tsv) && \
-   DRONESCHEDULER_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp-prereqs-dep --query properties.outputs.droneSchedulerIdName.value -o tsv) && \
-   DRONESCHEDULER_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $DRONESCHEDULER_ID_NAME --query principalId -o tsv) && \
-   WORKFLOW_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp-prereqs-dep --query properties.outputs.workflowIdName.value -o tsv) && \
-   WORKFLOW_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $WORKFLOW_ID_NAME --query principalId -o tsv) && \
-   INGRESS_CONTROLLER_ID_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp-prereqs-identities --query properties.outputs.appGatewayControllerIdName.value -o tsv) && \
-   INGRESS_CONTROLLER_ID_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n $INGRESS_CONTROLLER_ID_NAME --query principalId -o tsv)
+   DELIVERY_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-delivery --query principalId -o tsv) && \
+   DRONESCHEDULER_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-dronescheduler --query principalId -o tsv) && \
+   WORKFLOW_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-workflow --query principalId -o tsv) && \
+   PACKAGE_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-package --query principalId -o tsv) && \
+   INGESTION_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-ingestion --query principalId -o tsv) 
    ```
 
 1. Wait for Microsoft Entra propagation of the AKS Fabrikam Drone Delivery 00's user identities.
 
    ```bash
-   until az ad sp show --id ${DELIVERY_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
-   until az ad sp show --id ${DRONESCHEDULER_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
-   until az ad sp show --id ${WORKFLOW_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
-   until az ad sp show --id ${INGRESS_CONTROLLER_ID_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
+   until az ad sp show --id ${DELIVERY_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
+   until az ad sp show --id ${DRONESCHEDULER_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
+   until az ad sp show --id ${WORKFLOW_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
+   until az ad sp show --id ${PACKAGE_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
+   until az ad sp show --id ${INGESTION_PRINCIPAL_ID} &> /dev/null ; do echo "Waiting for Microsoft Entra ID propagation" && sleep 5; done
    ```
 
 1. Get the AKS cluster spoke VNet resource ID.
@@ -57,11 +55,11 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    TARGET_VNET_RESOURCE_ID=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterVnetResourceId.value -o tsv)
    ```
 
-1. Deploy the Azure Container Registry ARM template.
+1. Deploy the Azure Container Registry Bicep template.
 
    ```bash
    # [This takes about 10 minutes.]
-   az deployment group create -f ./workload/workload-stamp.json -g rg-shipping-dronedelivery -p droneSchedulerPrincipalId=$DRONESCHEDULER_ID_PRINCIPAL_ID -p workflowPrincipalId=$WORKFLOW_ID_PRINCIPAL_ID -p deliveryPrincipalId=$DELIVERY_ID_PRINCIPAL_ID -p acrResourceGroupName=$ACR_RESOURCE_GROUP
+   az deployment group create -f ./workload/workload-stamp.bicep -g rg-shipping-dronedelivery -p droneSchedulerPrincipalId=$DRONESCHEDULER_PRINCIPAL_ID -p workflowPrincipalId=$WORKFLOW_PRINCIPAL_ID -p deliveryPrincipalId=$DELIVERY_PRINCIPAL_ID  -p ingestionPrincipalId=$INGESTION_PRINCIPAL_ID -p packagePrincipalId=$PACKAGE_PRINCIPAL_ID
    ```
 
 1. Get the Azure Container Registry deployment output variables
@@ -71,14 +69,30 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    ACR_SERVER=$(az acr show -n $ACR_NAME --query loginServer -o tsv)
    ```
 
-1. Deploy the cluster ARM template.
-  :exclamation: By default, this deployment will allow unrestricted access to your cluster's API Server. You can limit access to the API Server to a set of well-known IP addresses such as your hub firewall IP, bastion subnet, and build agents. You can do this by providing these IP addresses to the `clusterAuthorizedIPRanges` parameter of the cluster-stamp ARM template.
+1. Import cluster management images to your container registry.
+
+   > Public container registries are subject to faults such as outages (no SLA) or request throttling. Interruptions like these can be crippling for a system that needs to pull an image _right now_. To minimize the risks of using public registries, store all applicable container images in a registry that you control, such as the SLA-backed Azure Container Registry.
+
+   ```bash
+   # Import cluster management images hosted in public container registries
+   az acr import --source ghcr.io/kubereboot/kured:1.15.0 -n $ACR_NAME
+   ```
+
+1. Prepare for Flux extension
+
+   > * update the `<replace-with-an-entra-group-object-id-for-this-cluster-role-binding>` placeholder in [`user-facing-cluster-role-entra-group.yaml`](./cluster-manifests/user-facing-cluster-role-entra-group.yaml) with the Object IDs for the Microsoft Entra group(s) you created for management purposes. If you don't, the manifest will still apply, but Microsoft Entra integration will not be mapped to your specific Microsoft Entra configuration.
+   > * Update three `image` manifest references to your container registry instead of the default public container registry. See comment in each file for instructions.
+    >   * update the one `image:` values in [`kured-1.15.0-dockerhub.yaml`](./cluster-baseline-settings/kured-1.15.0-dockerhub.yaml).
+
+
+1. Deploy the cluster Bicep template.
+  :exclamation: By default, this deployment will allow unrestricted access to your cluster's API Server. You can limit access to the API Server to a set of well-known IP addresses such as your hub firewall IP, bastion subnet, and build agents. You can do this by providing these IP addresses to the `clusterAuthorizedIPRanges` parameter of the cluster-stamp Bicep template.
 
     **Option 1 - Deploy from the command line**
 
    ```bash
    # [This takes about 15 minutes.]
-   az deployment group create --resource-group rg-shipping-dronedelivery --template-file cluster-stamp.json --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacEntraAdminGroupObjectID=$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID k8sRbacEntraProfileTenantId=$K8S_RBAC_ENTRA_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=$DELIVERY_ID_NAME  droneSchedulerIdName=$DRONESCHEDULER_ID_NAME workflowIdName=$WORKFLOW_ID_NAME ingressControllerIdName=$INGRESS_CONTROLLER_ID_NAME ingressControllerPrincipalId=$INGRESS_CONTROLLER_ID_PRINCIPAL_ID acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME
+   az deployment group create --resource-group rg-shipping-dronedelivery --template-file cluster-stamp.bicep --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacEntraAdminGroupObjectID=$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID k8sRbacEntraProfileTenantId=$K8S_RBAC_ENTRA_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=uid-delivery  droneSchedulerIdName=uid-dronescheduler workflowIdName=uid-workflow ingressControllerIdName=uid-ingestion acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME
    ```
 
    > Alternatively, you could have updated the [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file and deployed as above, using `--parameters "@azuredeploy.parameters.prod.json"` instead of the individual key-value pairs.
@@ -169,7 +183,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
     1. Navigate to your GitHub forked repository and open a PR against `main` using the recently pushed changes to the remote branch `kick-off-workflow`.
 
-       > :book: The DevOps team configured the GitHub Workflow to preview the changes that will happen when a PR is opened. This preview allows them to evaluate any changes before they get deployed. After the PR reviewers see how resources will change if the AKS cluster ARM template gets deployed, it is possible to merge or discard the pull request. If the decision is made to merge, a push event s created that will start the deployment process that consists of:
+       > :book: The DevOps team configured the GitHub Workflow to preview the changes that will happen when a PR is opened. This preview allows them to evaluate any changes before they get deployed. After the PR reviewers see how resources will change if the AKS cluster Bicep template gets deployed, it is possible to merge or discard the pull request. If the decision is made to merge, a push event s created that will start the deployment process that consists of:
        >
        > * AKS cluster creation
        > * Flux deployment
