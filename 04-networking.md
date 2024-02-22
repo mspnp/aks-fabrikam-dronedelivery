@@ -56,7 +56,7 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
    HUB_VNET_ID=$(az deployment group show -g rg-enterprise-networking-hubs -n hub-default --query properties.outputs.hubVnetId.value -o tsv)
    ```
 
-   Now, deploy the bicep file, which creates the virtual spoke network and other related configurations such as peerings, routing, and diagnostic configurations..
+   Now, deploy the Bicep file, which creates the virtual spoke network and other related configurations such as peerings, routing, and diagnostic configurations.
 
    ```bash
    # [This takes about ten minutes to run.]
