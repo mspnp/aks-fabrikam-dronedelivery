@@ -50,7 +50,7 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
 
    > :book: The networking team receives a request from an app team in the shipping business unit for a spoke network to house their new AKS-based application (Internally known as The Drone Delivery application). The network team talks with the app team to understand their requirements and align those needs with Microsoft's best practices to secure AKS cluster deployment. They capture those specific requirements, deploy the spoke, align them to those specs, and connect it to the matching regional hub.
 
-   First, get the id of the hub network. This value is used to create peered virtual networks between the hub and spoke networks.
+   First, get the ID of the hub network. This value is used to create peered virtual networks between the hub and spoke networks.
 
    ```bash
    HUB_VNET_ID=$(az deployment group show -g rg-enterprise-networking-hubs -n hub-default --query properties.outputs.hubVnetId.value -o tsv)
