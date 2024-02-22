@@ -15,7 +15,7 @@ GitOps allows a team to author Kubernetes manifest files, persist them in their 
 
 Flux was intalled as [AKS Flux extension](https://learn.microsoft.com/azure/azure-arc/kubernetes/tutorial-use-gitops-flux2) during the cluster deploy.
 
-1. Install `kubectl` 1.24 or newer. (`kubctl` supports +/-1 Kubernetes version.)
+1. Install `kubectl` 1.24 or newer. (`kubectl` supports +/-1 Kubernetes version.)
 
    ```bash
    sudo az aks install-cli
