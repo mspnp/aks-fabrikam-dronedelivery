@@ -15,7 +15,7 @@ In the prior step, you [generated the user-facing TLS certificate](./02-ca-certi
    # az account set -s <subscription id>
    ```
 
-1. Query for and save your Azure subscription tenant id of for the subscription where the AKS cluster will be deployed. This value is used throughout the reference implementation.
+1. Query for and save your Azure subscription tenant ID for the subscription where the AKS cluster will be deployed. This value is used throughout the reference implementation.
 
    ```bash
    export TENANT_ID=$(az account show --query tenantId --output tsv)
