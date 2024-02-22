@@ -1,6 +1,6 @@
 # Configure AKS Ingress Controller with Azure Key Vault integration
 
-Previously you have configured [workload prerequisites](./07-workload-prerequisites.md). These steps configure Azure Application Gateway Ingress Controller (AGIC), as the AKS ingress solution used by this reference implementation, so that it can securely expose the web app to your Application Gateway. It was included as AKS addon.
+Previously you configured [workload prerequisites](./07-workload-prerequisites.md). This reference implementation uses Azure Application Gateway Ingress Controller (AGIC) as the AKS ingress solution. The following steps will guide you in configuring AGIC to securely expose the web app to your Application Gateway. AGIC is included as an AKS addon.
 
 ## Steps
 
