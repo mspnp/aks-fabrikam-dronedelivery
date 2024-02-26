@@ -532,7 +532,7 @@ resource containerInsightsSolution 'Microsoft.OperationsManagement/solutions@201
 }
 
 // The control plane identity used by the cluster. Used for networking access (VNET joining and DNS updating)
-resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: 'mi-${clusterName}-controlplane'
   location: location
 }
