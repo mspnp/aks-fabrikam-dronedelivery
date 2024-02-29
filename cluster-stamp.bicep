@@ -70,6 +70,8 @@ param gitOpsBootstrappingRepoBranch string = 'main'
 ])
 param environmentName string = 'dev'
 
+var keyVaultSecretsUserRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+var keyVaultCertificateUserRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'db79e9a7-68ee-4b58-9aeb-b90e7c24fcba')
 var monitoringMetricsPublisherRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '3913510d-42f4-4e42-8a64-420c390055eb')
 var managedIdentityOperatorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f1a07417-d97a-45cb-824c-7a7467783830')
 var readerRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
@@ -117,37 +119,53 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
   location: location
   properties: {
-    accessPolicies: [
-      {
-        tenantId: appwToKeyVaultmanagedIdentity.properties.tenantId
-        objectId: appwToKeyVaultmanagedIdentity.properties.principalId
-        permissions: {
-          secrets: [
-            'get'
-          ]
-          certificates: [
-            'get'
-          ]
-        }
-      }
-      {
-        tenantId: aksToKeyVaultManagedIdentity.properties.tenantId
-        objectId: aksToKeyVaultManagedIdentity.properties.principalId
-        permissions: {
-          secrets: [
-            'get'
-          ]
-          certificates: [
-            'get'
-          ]
-        }
-      }
-    ]
+    enableRbacAuthorization: true
+    accessPolicies: []
     sku: {
       family: 'A'
       name: 'standard'
     }
     tenantId: subscription().tenantId
+  }
+}
+
+resource appwToKeyVaultSecretsUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: keyVault
+  name: guid(resourceGroup().id, keyVault.name, keyVaultSecretsUserRole, 'appw')
+  properties: {
+    roleDefinitionId: keyVaultSecretsUserRole
+    principalId: appwToKeyVaultmanagedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource appwToKeyVaultCertificateUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: keyVault
+  name: guid(resourceGroup().id, keyVault.name, keyVaultCertificateUserRole, 'appw')
+  properties: {
+    roleDefinitionId: keyVaultCertificateUserRole
+    principalId: appwToKeyVaultmanagedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource aksToKeyVaultSecretsUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: keyVault
+  name: guid(resourceGroup().id, keyVault.name, keyVaultSecretsUserRole, 'aks')
+  properties: {
+    roleDefinitionId: keyVaultSecretsUserRole
+    principalId: aksToKeyVaultManagedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource aksToKeyVaultCertificateUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: keyVault
+  name: guid(resourceGroup().id, keyVault.name, keyVaultCertificateUserRole, 'aks')
+  properties: {
+    roleDefinitionId: keyVaultCertificateUserRole
+    principalId: aksToKeyVaultManagedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -366,6 +384,10 @@ resource agw 'Microsoft.Network/applicationGateways@2023-04-01' = {
       }
     ]
   }
+  dependsOn: [
+    appwToKeyVaultSecretsUserRole
+    appwToKeyVaultCertificateUserRole
+  ]
 }
 
 resource agwMicrosoftInsightsDefault 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {

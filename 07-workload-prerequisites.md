@@ -11,8 +11,10 @@ The AKS Cluster has been enrolled in [GitOps management](./06-gitops.md), wrappi
    > :book: Finally, the app team decides to use a wildcard certificate of `*.aks-agic.fabrikam.com` for the ingress controller. They use Azure Key Vault to import and manage the lifecycle of this certificate.
 
    ```bash
+   export SIGNED_IN_OBJECT_ID=$(az ad signed-in-user show --query 'id' -o tsv)
    KEYVAULT_NAME=$(az deployment group show --resource-group rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.keyVaultName.value -o tsv)
-   az keyvault set-policy --certificate-permissions import list get --upn $(az account show --query user.name -o tsv) -n $KEYVAULT_NAME
+   export KEYVAULT_ID=$(az resource show -g rg-shipping-dronedelivery  -n $KEYVAULT_NAME --resource-type 'Microsoft.KeyVault/vaults' --query id --output tsv)
+   az role assignment create --role 'Key Vault Certificates Officer' --assignee $SIGNED_IN_OBJECT_ID --scope $KEYVAULT_ID
    ```
 
 1. Import the AKS Ingress Controller's Wildcard Certificate for `*.aks-agic.fabrikam.com`.
@@ -28,10 +30,8 @@ The AKS Cluster has been enrolled in [GitOps management](./06-gitops.md), wrappi
 
 1. Remove Azure Key Vault import certificates permissions for the current user.
 
-   > The Azure Key Vault Policy for your user was a temporary policy to allow you to upload the certificate for this walkthrough. In actual deployments, you would manage these access policies via your Bicep templates using [Azure RBAC for Key Vault data plane](https://learn.microsoft.com/azure/key-vault/general/secure-your-key-vault#data-plane-and-access-policies).
-
    ```bash
-   az keyvault delete-policy --upn $(az account show --query user.name -o tsv) -n $KEYVAULT_NAME
+   az role assignment delete --role 'Key Vault Certificates Officer' --assignee $SIGNED_IN_OBJECT_ID --scope $KEYVAULT_ID
    ```
 
 ## Verify that Azure Policies have applied to the cluster
