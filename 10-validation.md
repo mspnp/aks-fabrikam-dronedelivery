@@ -13,7 +13,7 @@ This section will help you to validate the workload is exposed correctly and res
     > :book: The app team conducts a final acceptance test to ensure that traffic is flowing end-to-end as expected. To do so, an HTTP request is submitted against the Azure Application Gateway endpoint.
 
    ```bash
-   export APPGW_PUBLIC_IP=$(az deployment group show --resource-group rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.appGwPublicIpAddress.value -o tsv)
+   export APPGW_PUBLIC_IP=$(az deployment group show --resource-group rg-enterprise-networking-spokes-${LOCATION} -n spoke-shipping-dronedelivery --query properties.outputs.appGwPublicIpAddress.value -o tsv)
    ```
 
 1. Send a request to https://dronedelivery.fabrikam.com.

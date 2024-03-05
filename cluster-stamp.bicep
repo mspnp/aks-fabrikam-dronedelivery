@@ -17,25 +17,7 @@ param aksIngressControllerCertificate string
 param clusterAuthorizedIPRanges array = []
 
 @description('AKS Service, Node Pool, and supporting services (KeyVault, App Gateway, etc) region.  The network team maintains this approved regional list which is a subset of zones with Availability Zone support.')
-@allowed([
-  'australiaeast'
-  'canadacentral'
-  'centralus'
-  'eastus'
-  'eastus2'
-  'westus2'
-  'francecentral'
-  'germanywestcentral'
-  'northeurope'
-  'southafricanorth'
-  'southcentralus'
-  'uksouth'
-  'westeurope'
-  'japaneast'
-  'southeastasia'
-  'westus3'
-])
-param location string = 'westus3'
+param location string = resourceGroup().location
 
 param kubernetesVersion string = '1.28'
 

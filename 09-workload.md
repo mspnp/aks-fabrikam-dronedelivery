@@ -22,15 +22,15 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    :book: The Fabrikan Drone Delivery application follows the zero trust principle when establishing network connections between containers. Initially, any container is allowed to establish a connection with another one. The following information is required to create ALLOW Network Policies.
 
    ```bash
-   export CLUSTER_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterSubnetPrefix.value -o tsv)
-   export GATEWAY_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.gatewaySubnetPrefix.value -o tsv)
+   export CLUSTER_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes-${LOCATION} -n spoke-shipping-dronedelivery --query properties.outputs.clusterSubnetPrefix.value -o tsv)
+   export GATEWAY_SUBNET_PREFIX=$(az deployment group show -g rg-enterprise-networking-spokes-${LOCATION} -n spoke-shipping-dronedelivery --query properties.outputs.gatewaySubnetPrefix.value -o tsv)
    ```
 
 1. Get the Azure Application Insights settings.
 
    ```bash
-   export AI_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.appInsightsName.value -o tsv)
-   export AI_IKEY=$(az resource show -g rg-shipping-dronedelivery -n $AI_NAME --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv)
+   export AI_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.appInsightsName.value -o tsv)
+   export AI_IKEY=$(az resource show -g rg-shipping-dronedelivery-${LOCATION} -n $AI_NAME --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv)
    ```
 
 1. Enable temporary public access to the the ACR instance.
@@ -46,7 +46,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 
    ```bash
    #  A Kubernetes token is issued and OIDC federation enables Kubernetes applications to access Azure resources securely with Microsoft Entra ID based on annotated service accounts.
-   export AKS_OIDC_ISSUER="$(az aks show -n $AKS_CLUSTER_NAME -g rg-shipping-dronedelivery --query "oidcIssuerProfile.issuerUrl" -otsv)"
+   export AKS_OIDC_ISSUER="$(az aks show -n $AKS_CLUSTER_NAME -g rg-shipping-dronedelivery-${LOCATION} --query "oidcIssuerProfile.issuerUrl" -otsv)"
    ```
 
 1. Deploy the Delivery service application.
@@ -60,12 +60,12 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the delivery application.
 
    ```bash
-   DELIVERY_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.deliveryKeyVaultUri.value -o tsv)
-   DELIVERY_COSMOSDB_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.deliveryCosmosDbName.value -o tsv)
+   DELIVERY_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.deliveryKeyVaultUri.value -o tsv)
+   DELIVERY_COSMOSDB_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.deliveryCosmosDbName.value -o tsv)
    DELIVERY_DATABASE_NAME="${DELIVERY_COSMOSDB_NAME}-db"
    DELIVERY_COLLECTION_NAME="${DELIVERY_COSMOSDB_NAME}-col"
-   DELIVERY_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery -n cluster-stamp --query properties.outputs.deliveryPrincipalResourceId.value -o tsv)
-   DELIVERY_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-delivery --query clientId -o tsv)
+   DELIVERY_PRINCIPAL_RESOURCE_ID=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n cluster-stamp --query properties.outputs.deliveryPrincipalResourceId.value -o tsv)
+   DELIVERY_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-delivery --query clientId -o tsv)
    ```
 
    Deploy the Delivery service.
@@ -73,7 +73,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    ```bash
 
    #Setup your managed identity to trust your Kubernetes service account
-   az identity federated-credential create --name credential-for-delivery --identity-name uid-delivery --resource-group rg-shipping-dronedelivery --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:backend-dev:delivery-sa-v0.1.0
+   az identity federated-credential create --name credential-for-delivery --identity-name uid-delivery --resource-group rg-shipping-dronedelivery-${LOCATION} --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:backend-dev:delivery-sa-v0.1.0
 
 
    helm package ./charts/delivery/ -u
@@ -113,10 +113,10 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the ingestion application.
 
    ```bash
-   export INGESTION_QUEUE_NAMESPACE=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.ingestionQueueNamespace.value -o tsv)
-   export INGESTION_QUEUE_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.ingestionQueueName.value -o tsv)
-   export INGESTION_ACCESS_KEY_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.ingestionServiceAccessKeyName.value -o tsv)
-   export INGESTION_ACCESS_KEY_VALUE=$(az servicebus namespace authorization-rule keys list --resource-group rg-shipping-dronedelivery --namespace-name $INGESTION_QUEUE_NAMESPACE --name $INGESTION_ACCESS_KEY_NAME --query primaryKey -o tsv)
+   export INGESTION_QUEUE_NAMESPACE=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.ingestionQueueNamespace.value -o tsv)
+   export INGESTION_QUEUE_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.ingestionQueueName.value -o tsv)
+   export INGESTION_ACCESS_KEY_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.ingestionServiceAccessKeyName.value -o tsv)
+   export INGESTION_ACCESS_KEY_VALUE=$(az servicebus namespace authorization-rule keys list --resource-group rg-shipping-dronedelivery-${LOCATION} --namespace-name $INGESTION_QUEUE_NAMESPACE --name $INGESTION_ACCESS_KEY_NAME --query primaryKey -o tsv)
    ```
 
    Deploy the Ingestion service.
@@ -160,8 +160,8 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the workflow app
 
    ```bash
-   export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-workflow --query clientId -o tsv)
-   export WORKFLOW_KEYVAULT_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.workflowKeyVaultName.value -o tsv)
+   export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-workflow --query clientId -o tsv)
+   export WORKFLOW_KEYVAULT_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.workflowKeyVaultName.value -o tsv)
    ```
 
 
@@ -169,7 +169,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
 
    ```bash
    # Setup your managed identity to trust your Kubernetes service account
-   az identity federated-credential create --name credential-for-workflow --identity-name uid-workflow --resource-group rg-shipping-dronedelivery --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:backend-dev:workflow-sa-v0.1.0
+   az identity federated-credential create --name credential-for-workflow --identity-name uid-workflow --resource-group rg-shipping-dronedelivery-${LOCATION} --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:backend-dev:workflow-sa-v0.1.0
 
    helm package ./charts/workflow/ -u && \
    helm install workflow-v0.1.0-dev workflow-v0.1.0.tgz \
@@ -182,7 +182,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
       --set networkPolicy.egress.external.enabled=true \
       --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
       --set keyvault.name=$WORKFLOW_KEYVAULT_NAME \
-      --set keyvault.resourcegroup=rg-shipping-dronedelivery \
+      --set keyvault.resourcegroup=rg-shipping-dronedelivery-${LOCATION} \
       --set keyvault.tenantid=$TENANT_ID \
       --set reason="Initial deployment" \
       --set envs.dev=true \
@@ -209,18 +209,18 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the dronescheduler app
 
    ```bash
-   export DRONESCHEDULER_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
-   export DRONESCHEDULER_COSMOSDB_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
+   export DRONESCHEDULER_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
+   export DRONESCHEDULER_COSMOSDB_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
    export DRONESCHEDULER_DATABASE_NAME="invoicing"
    export DRONESCHEDULER_COLLECTION_NAME="utilization"
-   export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-dronescheduler --query clientId -o tsv)
+   export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-dronescheduler --query clientId -o tsv)
    ```
 
    Deploy the DroneScheduler service.
 
    ```bash
    # Setup your managed identity to trust your Kubernetes service account
-   az identity federated-credential create --name credential-for-dronescheduler --identity-name uid-dronescheduler --resource-group rg-shipping-dronedelivery --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:backend-dev:dronescheduler-sa-v0.1.0
+   az identity federated-credential create --name credential-for-dronescheduler --identity-name uid-dronescheduler --resource-group rg-shipping-dronedelivery-${LOCATION} --issuer ${AKS_OIDC_ISSUER} --subject system:serviceaccount:backend-dev:dronescheduler-sa-v0.1.0
 
    helm package ./charts/dronescheduler/ -u && \
    helm install dronescheduler-v0.1.0-dev dronescheduler-v0.1.0.tgz \
@@ -256,8 +256,8 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    Extract Azure resource details for the package app
 
    ```bash
-   export PACKAGE_DATABASE_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.packageMongoDbName.value -o tsv)
-   export PACKAGE_CONNECTION=$(az cosmosdb keys list --type connection-strings --name $PACKAGE_DATABASE_NAME --resource-group rg-shipping-dronedelivery --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
+   export PACKAGE_DATABASE_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.packageMongoDbName.value -o tsv)
+   export PACKAGE_CONNECTION=$(az cosmosdb keys list --type connection-strings --name $PACKAGE_DATABASE_NAME --resource-group rg-shipping-dronedelivery-${LOCATION} --query "connectionStrings[0].connectionString" -o tsv | sed 's/==/%3D%3D/g') && \
    export PACKAGE_COLLECTION_NAME=packages
    ```
 

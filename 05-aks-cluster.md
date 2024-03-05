@@ -12,9 +12,9 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
    ```bash
    # [This takes less than two  minutes.]
-   az deployment sub create --name workload-stamp-prereqs --location eastus2 --template-file ./workload/workload-stamp-prereqs.bicep --parameters resourceGroupLocation=eastus2
+   az deployment sub create --name workload-stamp-prereqs --location ${LOCATION} --template-file ./workload/workload-stamp-prereqs.bicep --parameters resourceGroupLocation=${LOCATION}
 
-   az deployment sub create --name cluster-stamp-prereqs --location eastus --template-file cluster-stamp-prereqs.bicep --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=eastus
+   az deployment sub create --name cluster-stamp-prereqs --location ${LOCATION} --template-file cluster-stamp-prereqs.bicep --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=${LOCATION}
    ```
 
 1. Get the AKS Fabrikam Drone Delivery 00's Azure Container Registry resource group name.
@@ -30,11 +30,11 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    > :book: the app team will need to assign roles to the user identities so these are granted appropriate access to specific Azure services.
 
    ```bash
-   DELIVERY_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-delivery --query principalId -o tsv) && \
-   DRONESCHEDULER_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-dronescheduler --query principalId -o tsv) && \
-   WORKFLOW_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-workflow --query principalId -o tsv) && \
-   PACKAGE_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-package --query principalId -o tsv) && \
-   INGESTION_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery -n uid-ingestion --query principalId -o tsv) 
+   DELIVERY_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-delivery --query principalId -o tsv) && \
+   DRONESCHEDULER_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-dronescheduler --query principalId -o tsv) && \
+   WORKFLOW_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-workflow --query principalId -o tsv) && \
+   PACKAGE_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-package --query principalId -o tsv) && \
+   INGESTION_PRINCIPAL_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-ingestion --query principalId -o tsv) 
    ```
 
 1. Wait for Microsoft Entra propagation of the AKS Fabrikam Drone Delivery 00's user identities.
@@ -52,20 +52,20 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
    > :book: The app team will be deploying to a spoke VNet that the network team has already provisioned.
 
    ```bash
-   TARGET_VNET_RESOURCE_ID=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-shipping-dronedelivery --query properties.outputs.clusterVnetResourceId.value -o tsv)
+   TARGET_VNET_RESOURCE_ID=$(az deployment group show -g rg-enterprise-networking-spokes-${LOCATION} -n spoke-shipping-dronedelivery --query properties.outputs.clusterVnetResourceId.value -o tsv)
    ```
 
 1. Deploy the Azure Container Registry Bicep template.
 
    ```bash
    # [This takes about 10 minutes.]
-   az deployment group create -f ./workload/workload-stamp.bicep -g rg-shipping-dronedelivery -p droneSchedulerPrincipalId=$DRONESCHEDULER_PRINCIPAL_ID -p workflowPrincipalId=$WORKFLOW_PRINCIPAL_ID -p deliveryPrincipalId=$DELIVERY_PRINCIPAL_ID  -p ingestionPrincipalId=$INGESTION_PRINCIPAL_ID -p packagePrincipalId=$PACKAGE_PRINCIPAL_ID
+   az deployment group create -f ./workload/workload-stamp.bicep -g rg-shipping-dronedelivery-${LOCATION} -p droneSchedulerPrincipalId=$DRONESCHEDULER_PRINCIPAL_ID -p workflowPrincipalId=$WORKFLOW_PRINCIPAL_ID -p deliveryPrincipalId=$DELIVERY_PRINCIPAL_ID  -p ingestionPrincipalId=$INGESTION_PRINCIPAL_ID -p packagePrincipalId=$PACKAGE_PRINCIPAL_ID
    ```
 
 1. Get the Azure Container Registry deployment output variables
 
    ```bash
-   ACR_NAME=$(az deployment group show -g rg-shipping-dronedelivery -n workload-stamp --query properties.outputs.acrName.value -o tsv) && \
+   ACR_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.acrName.value -o tsv) && \
    ACR_SERVER=$(az acr show -n $ACR_NAME --query loginServer -o tsv)
    ```
 
@@ -92,7 +92,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
    ```bash
    # [This takes about 15 minutes.]
-   az deployment group create --resource-group rg-shipping-dronedelivery --template-file cluster-stamp.bicep --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacEntraAdminGroupObjectID=$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID k8sRbacEntraProfileTenantId=$K8S_RBAC_ENTRA_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=uid-delivery  droneSchedulerIdName=uid-dronescheduler workflowIdName=uid-workflow ingressControllerIdName=uid-ingestion acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME
+   az deployment group create --resource-group rg-shipping-dronedelivery-${LOCATION} --template-file cluster-stamp.bicep --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacEntraAdminGroupObjectID=$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID k8sRbacEntraProfileTenantId=$K8S_RBAC_ENTRA_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=uid-delivery  droneSchedulerIdName=uid-dronescheduler workflowIdName=uid-workflow ingressControllerIdName=uid-ingestion acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME
    ```
 
    > Alternatively, you could have updated the [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file and deployed as above, using `--parameters "@azuredeploy.parameters.prod.json"` instead of the individual key-value pairs.

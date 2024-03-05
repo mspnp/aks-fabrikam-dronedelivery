@@ -36,7 +36,7 @@ module nestedIdDeployment './nested_cluster-stamp-prereqs.bicep' = {
   params: {
     appGatewayName: environmentSettings[environmentName].appGatewayControllerIdName
     environmentName: environmentName
-    resourceGroupLocation: resourceGroupLocation
+    location: resourceGroupLocation
     resourceGroupName: resourceGroupName
   }
   dependsOn: []
