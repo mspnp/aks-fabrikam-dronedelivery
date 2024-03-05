@@ -13,11 +13,11 @@ param environmentName string
 param resourceGroupName string
 
 @description('The location where the resources will be created.')
-param resourceGroupLocation string = 'eastus'
+param location string = resourceGroup().location
 
 resource appGatewayControllermanagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: appGatewayName
-  location: resourceGroupLocation
+  location: location
   tags: {
     displayName: 'app gateway controller managed identity'
     what: 'rbac'
