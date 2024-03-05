@@ -19,6 +19,7 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
 
    ```bash
    export LOCATION=eastus2
+   export LOCATION_SERVICE_TAG=EastUS2
    ```
 
 1. Create a resource group for the hub network.
@@ -89,7 +90,7 @@ The prerequisites for the [AKS secure baseline cluster](./) are now completed wi
 
    ```bash
    # [This takes about three minutes to run.]
-   az deployment group create --resource-group rg-enterprise-networking-hubs-${LOCATION} --template-file networking/hub-regionA.bicep --parameters nodepoolSubnetResourceIds="['${NODEPOOL_SUBNET_RESOURCEIDS}']" serviceTagsLocation=EastUS2
+   az deployment group create --resource-group rg-enterprise-networking-hubs-${LOCATION} --template-file networking/hub-regionA.bicep --parameters nodepoolSubnetResourceIds="['${NODEPOOL_SUBNET_RESOURCEIDS}']" serviceTagsLocation=${LOCATION_SERVICE_TAG}
    ```
 
    > :book: At this point, the networking team has delivered a spoke in which The Drone Delivery's app team can deploy their AKS cluster. The networking team provides the necessary information to the app team to reference in their Infrastructure-as-Code artifacts.
