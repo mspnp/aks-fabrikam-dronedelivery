@@ -67,8 +67,7 @@ jobs:
       uses: Azure/cli@v1.0.0
       with:
         inlineScript: |
-         az deployment group $([[ ${{ github.event_name }} = pull_request ]] && echo what-if --no-pretty-print || echo create)  \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
+         az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} \
             --template-file "cluster-stamp.bicep" \
             --parameters \
               targetVnetResourceId=${{ env.TARGET_VNET_RESOURCE_ID }} \

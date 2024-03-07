@@ -132,9 +132,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
        Firt, the ./github-workflow/credential.json file needs to be customized with the repository owner.
 
        ```bash
-          cat ./github-workflow/credential.json | \
-           sed "s#<repo_owner>#${GITHUB_USER_NAME}#g" | \
-          > ./github-workflow/credential.json
+          sed -i "s/<repo_owner>/${GITHUB_USER_NAME}/g" ./github-workflow/credential.json
        ```
 
        Then, the federated credential need to be created.
