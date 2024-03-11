@@ -25,7 +25,7 @@ After you are done exploring your deployed [AKS secure baseline cluster](./), yo
 
 1. If any temporary changes were made to Microsoft Entra ID or Azure RBAC permissions, consider removing those as well. 
 
-1. Using a GitHub action option a Service Principal is created, consider removing those as well.
+1. If a service principal was created as part of the GitHub Action integration, consider removing it as well.
 
 1. [Remove the Azure Policy assignments](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyMenuBlade/Compliance) scoped to the cluster's resource group. To identify those created by this implementation, look for ones that are prefixed with `[your-cluster-name]`.
 
