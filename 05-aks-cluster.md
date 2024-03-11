@@ -97,7 +97,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
     > Alternatively, you could have updated the [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file and deployed as above, using `--parameters "@azuredeploy.parameters.prod.json"` instead of the individual key-value pairs.
 
     **Option 2 - Automated deploy using GitHub Actions (fork is required)**  
-    The Github Action integration is using [OpenID Connect (OIDC) with an Azure service principal using a Federated Identity Credential](/azure/developer/github/connect-from-azure)
+    The GitHub Action integration is using [OpenID Connect (OIDC) with an Azure service principal using a Federated Identity Credential](/azure/developer/github/connect-from-azure)
 
     1. Create Microsoft Entra application and service principal and then assign a role on your subscription to your application so that your workflow has access to your subscription.
 
