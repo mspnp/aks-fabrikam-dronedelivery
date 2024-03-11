@@ -152,7 +152,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
          gh secret set AZURE_SUBSCRIPTION_ID -b"${AZURE_SUBSCRIPTION_ID}" --repo ${GITHUB_USER_NAME}/aks-fabrikam-dronedelivery
        ```
 
-    1. Create `APP_GATEWAY_LISTENER_CERTIFICATE_BASE64` secret in your GitHub repository.
+    1. Create the secret `APP_GATEWAY_LISTENER_CERTIFICATE_BASE64` in your GitHub repository.
 
        ```bash
          gh secret set APP_GATEWAY_LISTENER_CERTIFICATE_BASE64 -b"${APP_GATEWAY_LISTENER_CERTIFICATE}" --repo ${GITHUB_USER_NAME}/aks-fabrikam-dronedelivery
