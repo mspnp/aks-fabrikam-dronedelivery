@@ -2,34 +2,11 @@
 #
 # Follow the next steps to use this workflow:
 #
-# 1. Your repository has the following structure.
-#    .
-#    ├── .github
-#    │   ├── workflows
-#    │   │   └── aks-deploy.yaml
-#    ├── cluster-baseline-settings
-#    │   ├── aad-pod-identity
-#    │   │   └── aad-pod-identity.yaml
-#    │   ├── dronedelivery
-#    │   │   └─ network-policies
-#    │   │   └─── np-deny-all-non-allowed-traffic-dev.yaml
-#    │   │   └─ rbac
-#    │   │   └─── rbac-ai.yaml
-#    │   ├── akv-secrets-store-csi.yaml
-#    │   ├── container-azm-ms-agentconfig.yaml
-#    │   ├── flux.yaml
-#    │   ├── ingress-network-policy.yaml
-#    │   ├── kured-1.4.0-dockerhub.yaml
-#    │   ├── ns-backend-dev.yaml
-#    │   ├── ns-cluster-baseline-settings.yaml
-#    │   └── user-facing-cluster-role-entra-group.yaml
-#    └── cluster-stamp.json
-#
-# 2. Ensure you have followed the prior sections before deploying this AKS cluster. This way, you will be capable of setting:
+# 1. Ensure you have followed the prior sections before deploying this AKS cluster. This way, you will be capable of setting:
 #    - the secrets values as detailed in the next step.
 #    - the environment variables from the env dictionary at the worklflow level.
 #
-# 3. Create the following secrets in your GitHub repository:
+# 2. Create the following secrets in your GitHub repository:
 #    - AZURE_CREDENTIALS                         The Azure Service Principal that will deploy the AKS cluster in your Azure subscription. For more information please take a look at https://github.com/Azure/login#configure-deployment-credentials
 #    - APP_GATEWAY_LISTENER_CERTIFICATE_BASE64   The certificate data for app gateway TLS termination. It is base64. Ideally fetch this secret from a platform-managed secret store such as Azure KeyVault: https://github.com/marketplace/actions/azure-key-vault-get-secrets
 #    - AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 The base 64 encoded AKS Ingress Controller public certificate (as .crt or .cer) to be stored in Azure Key Vault as secret and referenced by Azure Application Gateway as a trusted root certificate.
@@ -49,24 +26,23 @@ on:
     branches: [ main ]
 
 env:
-  RESOURCE_GROUP_LOCATION: '<resource-group-location>'                              # The location where the resource group is going to be created
   RESOURCE_GROUP: '<resource-group-name>'                                           # The name for the AKS cluster resource group
-  AKS_LOCATION: '<resource-group-localtion>'                                        # The location where the AKS cluster is going to be deployed
-  GEO_REDUNDANCY_LOCATION: '<geo-redundancy-location>'                              # The location for Azure resources that support native geo-redunancy. Should be different than the location parameter and ideally should be a paired region - https://learn.microsoft.com/en-us/azure/best-practices-availability-paired-regions. This region does not need to support availability zones.
   TARGET_VNET_RESOURCE_ID: '<cluster-spoke-vnet-resource-id>'                       # The regional network spoke VNet Resource ID that the cluster will be joined to
   K8S_RBAC_ENTRA_TENANTID: '<tenant-id-with-user-admin-permissions>'                # The tenant to integrate AKS-managed Microsoft Entra ID
   K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID: '<azure-ad-aks-admin-group-object-id>'       # The Microsoft Entra group object ID that has admin access to the AKS cluster
   CLUSTER_AUTHORIZED_IP_RANGES: '[]'                                                # By default, this deployment will allow unrestricted access to your cluster's API Server. You should limit access to the API Server to a set of well-known IP addresses (i.,e. your hub firewall IP, bastion subnet, build agents, or any other networks you'll administer the cluster from), and can do so by adding a CLUSTER_AUTHORIZED_IP_RANGES="['managementRange1', 'managementRange2', 'AzureFirewallIP/32']"" parameter.
   DELIVERY_ID_NAME: <delivery-id-name>                                              # The name of the delivery managed identity
-  DELIVERY_ID_PRINCIPAL_ID: <delivery-principal-id>                                 # The principal id for the delivery managed identity
   DRONESCHEDULER_ID_NAME: <dronescheduler-id-name>                                  # The name of the drone scheduler managed identity
-  DRONESCHEDULER_ID_PRINCIPAL_ID: <dronescheduler-principal-id>                     # The principal id for the drone scheduler managed identity
   WORKFLOW_ID_NAME: <workflow-id-name>                                              # The name of the workflow managed identity
-  WORKFLOW_ID_PRINCIPAL_ID: <workflow-principal-id>                                 # The principal id for the workflow managed identity
   INGRESS_CONTROLLER_ID_NAME: <ingress-controller-id-name>                          # The name of the ingress controller managed identity
-  INGRESS_CONTROLLER_ID_PRINCIPAL_ID: <ingress-controller-principalid>              # The principal id for the ingress controller controller managed identity
   ACR_RESOURCE_GROUP: <acr-resource-group-name>                                     # The resource group name of the Azure Continer Registry
-  ACR_LOCATION: <acr-resource-group-location>                                       # The resource group location of the Azure Continer Registry
+  ACR_NAME: <acr-name>                                                              # Azure Continer Registry name
+  GITOPS-BOOTSTRAPPING-REPO-HTTPS-URL: <gitops-bootstrapping-repo-https-url>        # Repo for flux add-on
+  GITOPS-BOOTSTRAPPING-REPOB-RANCH: <gitops-bootstrapping-repo-branch>              # Branch for flux add-on
+    
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
@@ -77,10 +53,13 @@ jobs:
       uses: actions/checkout@v2
 
     # Login into your Azure Subscription using your Azure credentials - make sure the credentials has write permissions for the specific resource group/subscription. The credentials should be stored in GitHub Secrets - (Go to Settings Tab ->Secrets)
-    - name: Azure Login
-      uses: Azure/login@v1.1
+    - name: 'Az CLI login'
+      uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          auth-type: SERVICE_PRINCIPAL
 
     # Deploy the cluster into your environment, assuming all prerequisites are up and running.
     - name: Azure CLI - Deploy AKS cluster
@@ -88,14 +67,9 @@ jobs:
       uses: Azure/cli@v1.0.0
       with:
         inlineScript: |
-         az group create --name ${{ env.RESOURCE_GROUP }} --location ${{ env.RESOURCE_GROUP_LOCATION }}
-         az deployment group $([[ ${{ github.event_name }} = pull_request ]] && echo what-if --no-pretty-print || echo create) \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --template-file "cluster-stamp.json" \
-            --name "cluster-stamp" \
+         az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file "cluster-stamp.bicep" \
             --parameters \
-              location=${{ env.AKS_LOCATION }} \
-              geoRedundancyLocation=${{ env.GEO_REDUNDANCY_LOCATION }} \
               targetVnetResourceId=${{ env.TARGET_VNET_RESOURCE_ID }} \
               k8sRbacEntraProfileTenantId=${{ env.K8S_RBAC_ENTRA_TENANTID }} \
               k8sRbacEntraAdminGroupObjectID=${{ env.K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID }} \
@@ -103,33 +77,13 @@ jobs:
               appGatewayListenerCertificate=${{ secrets.APP_GATEWAY_LISTENER_CERTIFICATE_BASE64 }} \
               aksIngressControllerCertificate=${{ secrets.AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 }} \
               deliveryIdName=${{ env.DELIVERY_ID_NAME }} \
-              deliveryPrincipalId=${{ env.DELIVERY_ID_PRINCIPAL_ID }} \
               droneSchedulerIdName=${{ env.DRONESCHEDULER_ID_NAME }} \
-              droneSchedulerPrincipalId=${{ env.DRONESCHEDULER_ID_PRINCIPAL_ID }} \
               workflowIdName=${{ env.WORKFLOW_ID_NAME }} \
-              workflowPrincipalId=${{ env.WORKFLOW_ID_PRINCIPAL_ID }} \
               ingressControllerIdName=${{ env.INGRESS_CONTROLLER_ID_NAME }} \
-              ingressControllerPrincipalId=${{ env.INGRESS_CONTROLLER_ID_PRINCIPAL_ID }} \
-              acrResourceGroupName=${{ env.ACR_RESOURCE_GROUP }}
+              acrResourceGroupName=${{ env.ACR_RESOURCE_GROUP }} \
+              acrName=${{ env.ACR_NAME }} \
+              gitOpsBootstrappingRepoHttpsUrl='${{ env.GITOPS-BOOTSTRAPPING-REPO-HTTPS-URL }}' \
+              gitOpsBootstrappingRepoBranch='${{ env.GITOPS-BOOTSTRAPPING-REPOB-RANCH }}'
 
           echo "::set-output name=name::$(az deployment group show --resource-group ${{ env.RESOURCE_GROUP }} -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)"
-        azcliversion: 2.6.0
-
-    # Set the AKS cluster context
-    - name: Set the AKS cluster context
-      uses: Azure/aks-set-context@v1
-      if: github.event_name == 'push'
-      with:
-        creds: '${{ secrets.AZURE_CREDENTIALS }}'
-        cluster-name: ${{ steps.aks-cluster.outputs.name }}
-        resource-group: ${{ env.RESOURCE_GROUP }}
-
-    # Create the cluster-baseline-settings namespace and deploy Flux into it
-    - name: Create the cluster-baseline-settings namespace and deploy Flux
-      uses: Azure/k8s-deploy@v1
-      if: github.event_name == 'push'
-      with:
-        namespace: 'cluster-baseline-settings'
-        manifests: |
-          cluster-baseline-settings/ns-cluster-baseline-settings.yaml
-          cluster-baseline-settings/flux.yaml
+        azcliversion: 2.58.0
