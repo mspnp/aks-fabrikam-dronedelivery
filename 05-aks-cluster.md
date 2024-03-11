@@ -109,7 +109,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
          GH_ACTION_FEDERATED_IDENTITY_SP_OBJECT_ID=$(echo $GH_ACTION_FEDERATED_IDENTITY_SP | jq -r '.id')
        ```
 
-       Set some environment information
+       Set environment information
 
        ```bash
          AZURE_SUBSCRIPTION_ID=$(az account show --query 'id' -o tsv)
