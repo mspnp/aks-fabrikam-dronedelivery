@@ -162,8 +162,11 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    ```bash
    export WORKFLOW_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-workflow --query clientId -o tsv)
    export WORKFLOW_KEYVAULT_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.workflowKeyVaultName.value -o tsv)
+   export WORKFLOW_QUEUE_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.ingestionQueueName.value -o tsv)
+   export WORKFLOW_NAMESPACE_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.ingestionQueueNamespace.value -o tsv)
+   export WORKFLOW_NAMESPACE_ENDPOINT=$(az servicebus namespace show -g rg-shipping-dronedelivery-${LOCATION} -n $WORKFLOW_NAMESPACE_NAME --query serviceBusEndpoint -o tsv)
+   export WORKFLOW_NAMESPACE_SAS_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.workflowServiceAccessKeyName.value -o tsv)
    ```
-
 
    Deploy the Workflow service.
 
@@ -179,6 +182,9 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
       --set identity.clientid=$WORKFLOW_PRINCIPAL_CLIENT_ID \
       --set identity.serviceAccountName=workflow-sa-v0.1.0 \
       --set identity.tenantId=$TENANT_ID \
+      --set secrets.queue.name=${WORKFLOW_QUEUE_NAME} \ 
+      --set secrets.queue.endpoint=${WORKFLOW_NAMESPACE_ENDPOINT} \
+      --set secrets.queue.policyname=${WORKFLOW_NAMESPACE_SAS_NAME} \
       --set networkPolicy.egress.external.enabled=true \
       --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
       --set keyvault.name=$WORKFLOW_KEYVAULT_NAME \
@@ -211,6 +217,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    ```bash
    export DRONESCHEDULER_KEYVAULT_URI=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.droneSchedulerKeyVaultUri.value -o tsv)
    export DRONESCHEDULER_COSMOSDB_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.droneSchedulerCosmosDbName.value -o tsv)
+   export DRONESCHEDULER_COSMOSDB_ENDPOINT_URL=$(az cosmosdb show -n $DRONESCHEDULER_COSMOSDB_NAME -g rg-shipping-dronedelivery-${LOCATION} --query documentEndpoint -o tsv)
    export DRONESCHEDULER_DATABASE_NAME="invoicing"
    export DRONESCHEDULER_COLLECTION_NAME="utilization"
    export DRONESCHEDULER_PRINCIPAL_CLIENT_ID=$(az identity show -g rg-shipping-dronedelivery-${LOCATION} -n uid-dronescheduler --query clientId -o tsv)
@@ -234,6 +241,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
         --set keyvault.uri=$DRONESCHEDULER_KEYVAULT_URI \
         --set cosmosdb.id=$DRONESCHEDULER_DATABASE_NAME \
         --set cosmosdb.collectionid=$DRONESCHEDULER_COLLECTION_NAME \
+        --set cosmosdb.endpoint=$DRONESCHEDULER_COSMOSDB_ENDPOINT_URL \
         --set reason="Initial deployment" \
         --set envs.dev=true \
         --namespace backend-dev

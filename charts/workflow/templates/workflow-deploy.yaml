@@ -124,6 +124,21 @@ spec:
           value: {{ default "Error" .Values.telemetry.level | quote }}
         - name: no_proxy
           value: 169.254.169.254
+        - name: QueueName
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: queue_name
+        - name: QueueEndpoint
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: queue_endpoint
+        - name: QueueAccessPolicyName
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: queue_policyname
       volumes:
       - name: workflow
         csi:
