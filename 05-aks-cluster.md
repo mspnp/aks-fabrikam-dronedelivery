@@ -14,15 +14,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
     # [This takes less than two  minutes.]
     az deployment sub create --name workload-stamp-prereqs --location ${LOCATION} --template-file ./workload/workload-stamp-prereqs.bicep --parameters resourceGroupLocation=${LOCATION}
 
-    az deployment sub create --name cluster-stamp-prereqs --location ${LOCATION} --template-file cluster-stamp-prereqs.bicep --parameters resourceGroupName=rg-shipping-dronedelivery resourceGroupLocation=${LOCATION}
-    ```
-
-1.  Get the AKS Fabrikam Drone Delivery 00's Azure Container Registry resource group name.
-
-    > :book: The app team will need an isolated resource group for the Azure Container Registry that contains all their business application Docker images.
-
-    ```bash
-    ACR_RESOURCE_GROUP=$(az deployment sub show -n workload-stamp-prereqs --query properties.outputs.acrResourceGroupName.value -o tsv)
+    az deployment sub create --name cluster-stamp-prereqs --location ${LOCATION} --template-file cluster-stamp-prereqs.bicep --parameters resourceGroupName=rg-shipping-dronedelivery-${LOCATION} resourceGroupLocation=${LOCATION}
     ```
 
 1.  Get the AKS Fabrikam Drone Delivery 00's user identities
@@ -91,7 +83,7 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
     ```bash
     # [This takes about 15 minutes.]
-    az deployment group create --resource-group rg-shipping-dronedelivery-${LOCATION} --template-file cluster-stamp.bicep --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacEntraAdminGroupObjectID=$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID k8sRbacEntraProfileTenantId=$K8S_RBAC_ENTRA_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=uid-delivery  droneSchedulerIdName=uid-dronescheduler workflowIdName=uid-workflow ingressControllerIdName=uid-ingestion acrResourceGroupName=$ACR_RESOURCE_GROUP acrName=$ACR_NAME
+    az deployment group create --resource-group rg-shipping-dronedelivery-${LOCATION} --template-file cluster-stamp.bicep --parameters targetVnetResourceId=$TARGET_VNET_RESOURCE_ID k8sRbacEntraAdminGroupObjectID=$K8S_RBAC_ENTRA_ADMIN_GROUP_OBJECTID k8sRbacEntraProfileTenantId=$K8S_RBAC_ENTRA_TENANTID appGatewayListenerCertificate=$APP_GATEWAY_LISTENER_CERTIFICATE aksIngressControllerCertificate=$AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 deliveryIdName=uid-delivery  droneSchedulerIdName=uid-dronescheduler workflowIdName=uid-workflow ingressControllerIdName=uid-ingestion acrResourceGroupName=rg-shipping-dronedelivery-${LOCATION}-acr acrName=$ACR_NAME
     ```
 
     > Alternatively, you could have updated the [`azuredeploy.parameters.prod.json`](./azuredeploy.parameters.prod.json) file and deployed as above, using `--parameters "@azuredeploy.parameters.prod.json"` instead of the individual key-value pairs.
