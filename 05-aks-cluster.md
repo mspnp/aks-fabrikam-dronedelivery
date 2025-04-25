@@ -12,9 +12,9 @@ Now that the [hub-spoke networks are provisioned](./04-networking.md), the next 
 
     ```bash
     # [This takes less than two  minutes.]
-    az deployment sub create --name workload-stamp-prereqs --location ${LOCATION} --template-file ./workload/workload-stamp-prereqs.bicep --parameters resourceGroupLocation=${LOCATION}
+    az deployment sub create --name workload-stamp-prereqs-${LOCATION} --location ${LOCATION} --template-file ./workload/workload-stamp-prereqs.bicep --parameters resourceGroupLocation=${LOCATION}
 
-    az deployment sub create --name cluster-stamp-prereqs --location ${LOCATION} --template-file cluster-stamp-prereqs.bicep --parameters resourceGroupName=rg-shipping-dronedelivery-${LOCATION} resourceGroupLocation=${LOCATION}
+    az deployment sub create --name cluster-stamp-prereqs-${LOCATION} --location ${LOCATION} --template-file cluster-stamp-prereqs.bicep --parameters resourceGroupName=rg-shipping-dronedelivery-${LOCATION} resourceGroupLocation=${LOCATION}
     ```
 
 1.  Get the AKS Fabrikam Drone Delivery 00's user identities

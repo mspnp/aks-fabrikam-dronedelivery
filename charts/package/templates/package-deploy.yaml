@@ -88,11 +88,11 @@ spec:
               key: mongodb-pwd
         - name: COLLECTION_NAME
           value: {{ default "packages" .Values.cosmosDb.collectionName }}
-        - name: APPINSIGHTS_INSTRUMENTATIONKEY
+        - name: APPINSIGHTS_CONNECTION_STRING
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-secrets
-              key: appinsights-ikey
+              key: appinsights-connectionstring
         - name: LOG_LEVEL
           value: {{ .Values.log.level }}
         - name: CONTAINER_NAME

@@ -19,7 +19,7 @@ param clusterAuthorizedIPRanges array = []
 @description('AKS Service, Node Pool, and supporting services (KeyVault, App Gateway, etc) region.  The network team maintains this approved regional list which is a subset of zones with Availability Zone support.')
 param location string = resourceGroup().location
 
-param kubernetesVersion string = '1.28'
+param kubernetesVersion string = '1.32'
 
 @description('the resource group name of the Azure Container Registry')
 param acrResourceGroupName string
@@ -542,7 +542,7 @@ resource miClusterControlPlane 'Microsoft.ManagedIdentity/userAssignedIdentities
   location: location
 }
 
-resource cluster 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
+resource cluster 'Microsoft.ContainerService/managedClusters@2025-02-01' = {
   name: clusterName
   location: location
   properties: {
@@ -662,7 +662,6 @@ resource cluster 'Microsoft.ContainerService/managedClusters@2023-07-02-preview'
       loadBalancerProfile: null
       serviceCidr: '172.16.0.0/16'
       dnsServiceIP: '172.16.0.10'
-      dockerBridgeCidr: '172.18.0.1/16'
     }
     aadProfile: {
       managed: true

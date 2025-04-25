@@ -31,6 +31,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
    ```bash
    export AI_NAME=$(az deployment group show -g rg-shipping-dronedelivery-${LOCATION} -n workload-stamp --query properties.outputs.appInsightsName.value -o tsv)
    export AI_IKEY=$(az resource show -g rg-shipping-dronedelivery-${LOCATION} -n $AI_NAME --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv)
+   export AI_CONNECTION_STRING=$(az monitor app-insights component show -g rg-shipping-dronedelivery-${LOCATION} -a $AI_NAME --query connectionString --output tsv)
    ```
 
 1. Enable temporary public access to the the ACR instance.
@@ -182,7 +183,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
       --set identity.clientid=$WORKFLOW_PRINCIPAL_CLIENT_ID \
       --set identity.serviceAccountName=workflow-sa-v0.1.0 \
       --set identity.tenantId=$TENANT_ID \
-      --set secrets.queue.name=${WORKFLOW_QUEUE_NAME} \ 
+      --set secrets.queue.name=${WORKFLOW_QUEUE_NAME} \
       --set secrets.queue.endpoint=${WORKFLOW_NAMESPACE_ENDPOINT} \
       --set secrets.queue.policyname=${WORKFLOW_NAMESPACE_SAS_NAME} \
       --set networkPolicy.egress.external.enabled=true \
@@ -278,7 +279,7 @@ The cluster now has an [Azure Application Gateway Ingress Controller configured 
         --set image.repository=package \
         --set networkPolicy.egress.external.enabled=true \
         --set networkPolicy.egress.external.clusterSubnetPrefix=$CLUSTER_SUBNET_PREFIX \
-        --set secrets.appinsights.ikey=$AI_IKEY \
+        --set secrets.appinsights.connectionstring=$AI_CONNECTION_STRING \
         --set secrets.mongo.pwd=$PACKAGE_CONNECTION \
         --set cosmosDb.collectionName=$PACKAGE_COLLECTION_NAME \
         --set dockerregistry=$ACR_SERVER \
