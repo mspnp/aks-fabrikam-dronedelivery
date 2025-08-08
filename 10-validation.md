@@ -97,10 +97,10 @@ This section will help you to validate the workload is exposed correctly and res
 
    > Note: if you've enabled the autoscaling capability when deploying the [workload](./09-workload.md), when a pod for a microservice exceeds the `CPU` limits, a new pod (or more) are going to be scheduled until the CPU desired target is met.
 
-##  Further validate by following extra steps from the AKS Secure Baseline (optional)
+##  Further validate by following extra steps from the AKS Baseline *(optional)*
 
-Navigate to [the AKS Secure Baseline to validate the Firewall, Azure Monitor Insights, and
-more.](https://github.com/mspnp/aks-secure-baseline/blob/aeed3c9036d440979c4baa93f5b43a7c3e6d5375/10-validation.md#validate-web-application-firewall-functionality)
+Navigate to [the AKS Baseline to validate the Firewall, Azure Monitor Insights, and
+more.](https://github.com/mspnp/aks-baseline/blob/main/docs/deploy/11-validation.md#validate-web-application-firewall-functionality)
 
 ## Next step
 
