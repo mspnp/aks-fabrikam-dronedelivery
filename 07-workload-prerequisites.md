@@ -1,6 +1,6 @@
 # Workload Prerequisites
 
-The AKS Cluster has been enrolled in [GitOps management](./06-gitops.md), wrapping up the infrastructure focus of the [AKS secure Baseline reference implementation](./). Follow the steps below to import the TLS certificate that the Ingress Controller will serve for Application Gateway to connect to your web app.
+The AKS Cluster has been enrolled in [GitOps management](./06-gitops.md), wrapping up the infrastructure focus of the [reference implementation](./). Follow the steps below to import the TLS certificate that the Ingress Controller will serve for Application Gateway to connect to your web app.
 
 ## Import the wildcard certificate for the AKS Ingress Controller to Azure Key Vault
 
