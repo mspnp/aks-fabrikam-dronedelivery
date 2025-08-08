@@ -43,7 +43,7 @@ If your issue appears to be a bug, and hasn't been reported, open a new issue. H
 * **Related Issues** - has a similar issue been reported before?
 * **Suggest a Fix** - if you can't fix the bug yourself, perhaps you can point to what might be causing the problem (line of code or commit)
 
-You can file new issues by providing the above information at the corresponding repository's issues link: https://github.com/mspnp/aks-fabrikam-dronedeliveryissues/new].
+You can file new issues by providing the above information at the corresponding repository's issues link: https://github.com/mspnp/aks-fabrikam-dronedelivery/issues/new
 
 ### <a name="submit-pr"></a> Submitting a Pull Request (PR)
 
